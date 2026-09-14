@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "Validation failed.",
+    "requestId": "request-example-01",
+    "fields": [
+      {
+        "field": "requestedDays",
+        "code": "MIN"
+      }
+    ]
+  }
+}

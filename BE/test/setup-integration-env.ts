@@ -1,0 +1,34 @@
+process.env.PORT = process.env.PORT ?? '3000';
+process.env.NODE_ENV = process.env.NODE_ENV ?? 'test';
+process.env.DATABASE_HOST = process.env.DATABASE_HOST ?? '127.0.0.1';
+process.env.DATABASE_PORT = process.env.DATABASE_PORT ?? '3306';
+process.env.DATABASE_USERNAME = process.env.DATABASE_USERNAME ?? 'app';
+process.env.DATABASE_PASSWORD = process.env.DATABASE_PASSWORD ?? 'local-app-change-me';
+process.env.DATABASE_NAME =
+  process.env.DATABASE_NAME ?? process.env.DATABASE_TEST_NAME ?? 'quan_ly_sach_test';
+process.env.DATABASE_TEST_NAME = process.env.DATABASE_TEST_NAME ?? 'quan_ly_sach_test';
+process.env.DATABASE_MIGRATION_USERNAME = process.env.DATABASE_MIGRATION_USERNAME ?? 'migration';
+process.env.DATABASE_MIGRATION_PASSWORD =
+  process.env.DATABASE_MIGRATION_PASSWORD ?? 'local-migration-change-me';
+process.env.INTEGRATION_TESTS = process.env.INTEGRATION_TESTS ?? '1';
+process.env.CONTRACT_TEST_ACTOR = process.env.CONTRACT_TEST_ACTOR ?? '0';
+process.env.ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ?? 'http://127.0.0.1:3000';
+process.env.CSRF_HMAC_SECRET = process.env.CSRF_HMAC_SECRET ?? 'test-csrf-secret';
+process.env.RATE_LIMIT_HMAC_SECRET = process.env.RATE_LIMIT_HMAC_SECRET ?? 'test-rate-limit-secret';
+process.env.SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? 'library-session';
+process.env.LOGIN_RATE_LIMIT_MAX = process.env.LOGIN_RATE_LIMIT_MAX ?? '5';
+process.env.MAIL_HOST = process.env.MAIL_HOST ?? '127.0.0.1';
+process.env.MAIL_PORT = process.env.MAIL_PORT ?? '1025';
+process.env.MAIL_FROM = process.env.MAIL_FROM ?? 'noreply@local.test';
+process.env.OUTBOX_ENCRYPTION_KEY_ID = process.env.OUTBOX_ENCRYPTION_KEY_ID ?? 'test-v1';
+process.env.OUTBOX_ENCRYPTION_KEY =
+  process.env.OUTBOX_ENCRYPTION_KEY ?? 'MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=';
+process.env.JOB_BATCH_SIZE = process.env.JOB_BATCH_SIZE ?? '10';
+process.env.JOB_LEASE_SECONDS = process.env.JOB_LEASE_SECONDS ?? '30';
+process.env.JOB_MAX_ATTEMPTS = process.env.JOB_MAX_ATTEMPTS ?? '5';
+process.env.JOB_POLL_SECONDS = process.env.JOB_POLL_SECONDS ?? '1';
+process.env.APP_PUBLIC_ORIGIN = process.env.APP_PUBLIC_ORIGIN ?? 'http://127.0.0.1:5173';
+process.env.RESET_PASSWORD_TTL_MS = process.env.RESET_PASSWORD_TTL_MS ?? '900000';
+process.env.ACTIVATION_TTL_MS = process.env.ACTIVATION_TTL_MS ?? '86400000';
+process.env.FORGOT_RATE_LIMIT_MAX = process.env.FORGOT_RATE_LIMIT_MAX ?? '5';
+process.env.FORGOT_RATE_LIMIT_WINDOW_MS = process.env.FORGOT_RATE_LIMIT_WINDOW_MS ?? '900000';

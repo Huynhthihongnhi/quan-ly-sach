@@ -1,0 +1,1 @@
+export const DIGITAL_FILE_STORAGE = Symbol('DIGITAL_FILE_STORAGE');

@@ -1,0 +1,116 @@
+# Minimal Vibe Coding Kit backbone. See .vibekit/docs/BACKBONE_REFERENCE.md for details.
+version: 2
+meta:
+  template_status: initialized
+  initialized_at: "2026-09-11T04:51:06.803Z"
+  template_source: minimal-vibe-coding-kit
+  schema_version: 4
+  init_runbook: .vibekit/init/FIRST_TIME_INIT.md
+  init_done_marker: .vibekit/INIT_DONE
+
+project:
+  name: Quan-Ly-Sach
+  description: "Thư viện trực tuyến trong mạng nội bộ trường học, có tra cứu cho khách và CMS cho thủ thư."
+  type: single-repo
+  primary_language: ts
+  package_manager: unknown
+  mode: greenfield
+  prd: .vibekit/docs/PRD.md
+  context: .vibekit/docs/CONTEXT.md
+
+paths:
+  root: .
+  apps:
+    - .
+  source: []
+  tests: []
+  docs: [temp.md, .vibekit/docs/]
+  generated: [node_modules/, dist/, build/, coverage/]
+
+conventions:
+  review_required_before_write: true
+  scope: repo
+  naming:
+    files: not-detected
+    directories: not-detected
+    symbols: not-detected
+    evidence:
+      - "No application source exists; exclude kit scripts from convention detection."
+  architecture:
+    detected: []
+    rule: "No dominant architecture was detected; ask before adding new top-level layers or broad structural patterns."
+  resources:
+    detected_asset_roots: []
+    detected_registries: []
+    rule: "No asset/resource convention was detected; ask before adding a project-wide resource abstraction."
+  localization:
+    detected_catalogs: []
+    detected_accessors: []
+    rule: "No localization convention was detected; follow nearby copy patterns and ask before introducing a project-wide i18n layer."
+  custom_rules:
+    - "Use path-sensitive-shell-safety before editing shell/deploy/installer/repair logic that joins remote base paths, repo folders, checkout paths, or destructive commands such as rm/mv/cp/rsync/find/git cleanup."
+    - "Response format: lead with the outcome; use decision tables (Option, What it does, Cost, Risk, Recommended) when the user must choose; end multi-step work with a Done / Next / Decision needed status block. See .claude/rules/response-format.md."
+    - "Proportional effort: triage tasks as trivial/small/medium/large and match process weight; score the visual/e2e gate 0-6 and require user approval before visual-design-loop or e2e runs. See .claude/rules/proportional-effort.md."
+    - "Plain-language register in every reply language: lead with the outcome, short sentences, active voice, define project terms at first use, and reuse the glossary in project.context (.vibekit/docs/CONTEXT.md) instead of synonyms. English-only word lists (ASD-STE100) apply only to English replies; /wait-what re-pitches a message that did not land, in the user's language, with zero new work."
+    - "Writing style: no emoji and no em/en dashes in generated prose unless the user explicitly asks; use ASCII punctuation and keep existing characters in files whose established style already uses them."
+    - "Default coding level: 1 (Junior) - apply this explanation depth every session; change with /coding-level N."
+    - "Deletion safety: use trash instead of rm; permanent deletes require explicit approval of the exact paths."
+    - "Project scope and delivery order: follow project.prd and project.context; preserve temp.md as the original brief."
+    - "Planned stack: React, TypeScript, Tailwind CSS and shadcn/ui for reader UI and CMS; MySQL for data. Backend NestJS is a provisional interpretation of netjs and needs confirmation before scaffolding."
+    - "Backend delivery: use RESTful APIs and TDD (write a failing behavior test, implement it, then refactor); verify tools, versions and commands when scaffolding."
+    - "Guest access: allow book lists, search and related filters without registration, login or a library card; enforce privileged permissions on the backend."
+    - "Migration proposal: numbered paired SQL up/down files, preview and selected-version support, adapted to MySQL; add applied-version history and follow the existing protected-path policy."
+    - "Runtime target: Docker Desktop on macOS for local development; Ubuntu Server version greater than 24 for production, with the exact release still to be confirmed."
+    - "Generated definitions: none detected; when generators are introduced, update source definitions and reuse shared accessors rather than editing generated output."
+
+commands:
+  install: cd BE && npm ci
+  test: cd BE && npm run test:unit
+  lint: cd BE && npm run lint
+  typecheck: cd BE && npm run typecheck
+  build: cd BE && npm run build
+  validate: node .vibekit/scripts/validate-kit.mjs . && cd BE && npm run validate
+  verification:
+    unit: cd BE && npm run test:unit
+    acceptance: null
+    architecture: null
+    property: null
+    mutation: null
+    e2e: null
+
+policy:
+  default_branch: main
+  branch_naming: "feat/<short-topic>"
+  commit_style: conventional
+  editable_paths: [.]
+  protected_paths: [".git/", ".env*", "**/*secret*", "**/*token*", "**/migrations/**",
+    "**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**", "**/*lock*",
+    "**/infra/**", "**/infrastructure/**", "**/generated/**"]
+
+agent_surfaces:
+  claude: .claude/
+  cursor: .cursor/
+  codex: .agents/
+  codex_plugin: .codex-plugin/plugin.json
+  opencode: .opencode/
+  grok: .grok/
+  kimi: .kimi-code/
+  shared_skills: .vibekit/skills/
+  shared_commands: .vibekit/commands/
+
+automation:
+  autoresearch:
+    results_file: results.tsv
+    logs_dir: .autoresearch/logs
+    default_budget: 3
+    default_timeout_seconds: 600
+  daily_enhance:
+    report_dir: .vibekit/reports
+    write_mode: propose_only
+  finalize:
+    cleanup_dir: _vibekit-cleanup
+    marker: .vibekit/FINALIZE_DONE
+    one_time_files: [.vibekit/init/FIRST_TIME_INIT.md, .vibekit/init/FIRST_PROMPT.md, .vibekit/init/PUSH_TO_GITHUB.md, .vibekit/init/CLAUDE-template.md]
+  security:
+    probe: node .vibekit/scripts/agentshield-probe.mjs .
+    scan: npx ecc-agentshield@1.4.0 scan --path . --format text --min-severity medium

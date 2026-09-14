@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS book_copies;
+DROP TABLE IF EXISTS book_topics;
+DROP TABLE IF EXISTS book_authors;
+DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS topics;
+DROP TABLE IF EXISTS authors;
+DROP TABLE IF EXISTS categories;

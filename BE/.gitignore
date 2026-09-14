@@ -1,0 +1,16 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+docker/.env.docker
+!docker/.env.docker.example
+
+# Local runtime data
+*.log
+.DS_Store
+openapi.json

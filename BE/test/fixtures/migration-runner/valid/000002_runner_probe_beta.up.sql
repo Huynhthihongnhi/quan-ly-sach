@@ -1,0 +1,8 @@
+CREATE TABLE runner_probe_beta (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  alpha_id BIGINT UNSIGNED NOT NULL,
+  note VARCHAR(128) NOT NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (id),
+  KEY idx_runner_probe_beta_alpha_id (alpha_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

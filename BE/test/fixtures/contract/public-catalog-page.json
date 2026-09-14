@@ -1,0 +1,14 @@
+{
+  "data": [
+    {
+      "id": "9223372036854775807",
+      "label": "Public sample B",
+      "version": "2"
+    }
+  ],
+  "meta": {
+    "page": 2,
+    "pageSize": 1,
+    "total": 2
+  }
+}

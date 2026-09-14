@@ -1,0 +1,55 @@
+# Local infrastructure for BE development (S0-03).
+# API/worker run on the host for hot reload on macOS; only MySQL and mail sandbox run here.
+#
+# Usage:
+#   cp docker/.env.docker.example docker/.env.docker
+#   npm run docker:up
+#   cp .env.example .env   # align DATABASE_* and MAIL_* with docker/.env.docker
+
+services:
+  mysql:
+    image: mysql:8.4.5
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+      - --explicit_defaults_for_timestamp=ON
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p"$$MYSQL_ROOT_PASSWORD"']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  mailpit:
+    image: axllent/mailpit:v1.27.1
+    restart: unless-stopped
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: '1'
+      MP_SMTP_AUTH_ALLOW_INSECURE: '1'
+      TZ: UTC
+    ports:
+      - '${MAIL_SMTP_PORT:-1025}:1025'
+      - '${MAIL_UI_PORT:-8025}:8025'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8025/livez']
+      interval: 5s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+
+volumes:
+  mysql_data:
+    name: quan-ly-sach-local-mysql-data

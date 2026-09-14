@@ -1,0 +1,10 @@
+{
+  "name": "mvck-quan-ly-sach",
+  "version": "0.5.15",
+  "description": "MVCK vibe coding skills for the Quan-Ly-Sach project.",
+  "author": {
+    "name": "MVCK (Quan-Ly-Sach)"
+  },
+  "license": "MIT",
+  "skills": "./.vibekit/skills/"
+}

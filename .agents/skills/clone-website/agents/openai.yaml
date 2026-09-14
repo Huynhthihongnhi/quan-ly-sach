@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clone Website"
+  short_description: "Build authorized websites from one complete brief"
+  default_prompt: "Use $clone-website to gather my full website requirements, freeze one launch plan, then build and verify the authorized site without routine stage prompts."

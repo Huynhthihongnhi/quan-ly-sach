@@ -1,0 +1,63 @@
+CREATE TABLE loans (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  card_id BIGINT UNSIGNED NOT NULL,
+  copy_id BIGINT UNSIGNED NOT NULL,
+  request_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  request_hash BINARY(32) NOT NULL,
+  state VARCHAR(16) NOT NULL DEFAULT 'reserved',
+  requested_days TINYINT UNSIGNED NOT NULL,
+  reserved_at DATETIME(6) NOT NULL,
+  reservation_expires_at DATETIME(6) NOT NULL,
+  checked_out_at DATETIME(6) NULL,
+  due_at DATETIME(6) NULL,
+  closed_at DATETIME(6) NULL,
+  version BIGINT UNSIGNED NOT NULL DEFAULT 1,
+  active_copy_id BIGINT UNSIGNED GENERATED ALWAYS AS (CASE WHEN state IN ('reserved','borrowed') THEN copy_id ELSE NULL END) VIRTUAL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_loans_request (user_id, request_key),
+  UNIQUE KEY uq_loans_active_copy (active_copy_id),
+  KEY idx_loans_card_user (card_id, user_id),
+  KEY idx_loans_copy_history (copy_id, reserved_at),
+  KEY idx_loans_user_state (user_id, state, id),
+  KEY idx_loans_due (state, due_at, id),
+  KEY idx_loans_reservation_expiry (state, reservation_expires_at, id),
+  CONSTRAINT fk_loans_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_loans_card_owner FOREIGN KEY (card_id, user_id) REFERENCES library_cards(id, user_id) ON DELETE RESTRICT,
+  CONSTRAINT fk_loans_copy FOREIGN KEY (copy_id) REFERENCES book_copies(id) ON DELETE RESTRICT,
+  CONSTRAINT chk_loans_state CHECK (state IN ('reserved','borrowed','returned','cancelled','expired','lost')),
+  CONSTRAINT chk_loans_days CHECK (requested_days BETWEEN 1 AND 15),
+  CONSTRAINT chk_loans_reservation CHECK (reservation_expires_at > reserved_at),
+  CONSTRAINT chk_loans_due CHECK (due_at IS NULL OR (checked_out_at IS NOT NULL AND due_at > checked_out_at)),
+  CONSTRAINT chk_loans_borrowed CHECK (state <> 'borrowed' OR (checked_out_at IS NOT NULL AND due_at IS NOT NULL)),
+  CONSTRAINT chk_loans_closed CHECK (state NOT IN ('returned','cancelled','expired','lost') OR closed_at IS NOT NULL)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE loan_events (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  loan_id BIGINT UNSIGNED NOT NULL,
+  actor_user_id BIGINT UNSIGNED NULL,
+  from_state VARCHAR(16) NULL,
+  to_state VARCHAR(16) NOT NULL,
+  reason VARCHAR(500) NULL,
+  request_id VARCHAR(64) NOT NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (id),
+  KEY idx_loan_events_time (loan_id, created_at, id),
+  CONSTRAINT fk_loan_events_loan FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_loan_events_actor FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE notification_deliveries (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  loan_id BIGINT UNSIGNED NOT NULL,
+  due_at_snapshot DATETIME(6) NOT NULL,
+  kind VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  outbox_id BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_notifications_loan_due_kind (loan_id, due_at_snapshot, kind),
+  UNIQUE KEY uq_notifications_outbox (outbox_id),
+  CONSTRAINT fk_notifications_loan FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_notifications_outbox FOREIGN KEY (outbox_id) REFERENCES email_outbox(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

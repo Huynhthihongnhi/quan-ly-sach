@@ -1,0 +1,54 @@
+# Ánh xạ task và kiểm thử
+
+Chỉ mô tả liên kết, không lưu trạng thái. Tiến độ xem [PROGRESS.md](PROGRESS.md).
+
+| Task | Nhóm test | Lớp kiểm thử |
+| --- | --- | --- |
+| [S0-01](sprints/s0.md#s0-01) | [TST-S0-01](TEST_CASES.md#tst-s0-01) | manual |
+| [S0-02](sprints/s0.md#s0-02) | [TST-S0-02](TEST_CASES.md#tst-s0-02) | static |
+| [S0-03](sprints/s0.md#s0-03) | [TST-S0-03](TEST_CASES.md#tst-s0-03) | integration |
+| [S0-04](sprints/s0.md#s0-04) | [TST-S0-04](TEST_CASES.md#tst-s0-04) | integration |
+| [S0-05](sprints/s0.md#s0-05) | [TST-S0-05](TEST_CASES.md#tst-s0-05) | contract |
+| [S0-06](sprints/s0.md#s0-06) | [TST-S0-06](TEST_CASES.md#tst-s0-06) | database |
+| [S1-01](sprints/s1.md#s1-01) | [TST-S1-01](TEST_CASES.md#tst-s1-01) | database |
+| [S1-02](sprints/s1.md#s1-02) | [TST-S1-02](TEST_CASES.md#tst-s1-02) | security |
+| [S1-03](sprints/s1.md#s1-03) | [TST-S1-03](TEST_CASES.md#tst-s1-03) | security |
+| [S1-04](sprints/s1.md#s1-04) | [TST-S1-04](TEST_CASES.md#tst-s1-04) | security |
+| [S1-05](sprints/s1.md#s1-05) | [TST-S1-05](TEST_CASES.md#tst-s1-05) | security |
+| [S1-06](sprints/s1.md#s1-06) | [TST-S1-06](TEST_CASES.md#tst-s1-06) | component |
+| [S1-07](sprints/s1.md#s1-07) | [TST-S1-07](TEST_CASES.md#tst-s1-07) | acceptance |
+| [S2-01](sprints/s2.md#s2-01) | [TST-S2-01](TEST_CASES.md#tst-s2-01) | security |
+| [S2-02](sprints/s2.md#s2-02) | [TST-S2-02](TEST_CASES.md#tst-s2-02) | security |
+| [S2-03](sprints/s2.md#s2-03) | [TST-S2-03](TEST_CASES.md#tst-s2-03) | security |
+| [S2-04](sprints/s2.md#s2-04) | [TST-S2-04](TEST_CASES.md#tst-s2-04) | security |
+| [S2-05](sprints/s2.md#s2-05) | [TST-S2-05](TEST_CASES.md#tst-s2-05) | component |
+| [S2-06](sprints/s2.md#s2-06) | [TST-S2-06](TEST_CASES.md#tst-s2-06) | acceptance |
+| [S3-01](sprints/s3.md#s3-01) | [TST-S3-01](TEST_CASES.md#tst-s3-01) | database |
+| [S3-02](sprints/s3.md#s3-02) | [TST-S3-02](TEST_CASES.md#tst-s3-02) | security |
+| [S3-03](sprints/s3.md#s3-03) | [TST-S3-03](TEST_CASES.md#tst-s3-03) | contract |
+| [S3-04](sprints/s3.md#s3-04) | [TST-S3-04](TEST_CASES.md#tst-s3-04) | component |
+| [S3-05](sprints/s3.md#s3-05) | [TST-S3-05](TEST_CASES.md#tst-s3-05) | performance |
+| [S3-06](sprints/s3.md#s3-06) | [TST-S3-06](TEST_CASES.md#tst-s3-06) | acceptance |
+| [S4-01](sprints/s4.md#s4-01) | [TST-S4-01](TEST_CASES.md#tst-s4-01) | security |
+| [S4-02](sprints/s4.md#s4-02) | [TST-S4-02](TEST_CASES.md#tst-s4-02) | database |
+| [S4-03](sprints/s4.md#s4-03) | [TST-S4-03](TEST_CASES.md#tst-s4-03) | security |
+| [S4-04](sprints/s4.md#s4-04) | [TST-S4-04](TEST_CASES.md#tst-s4-04) | component |
+| [S4-05](sprints/s4.md#s4-05) | [TST-S4-05](TEST_CASES.md#tst-s4-05) | acceptance |
+| [S5-01](sprints/s5.md#s5-01) | [TST-S5-01](TEST_CASES.md#tst-s5-01) | database |
+| [S5-02](sprints/s5.md#s5-02) | [TST-S5-02](TEST_CASES.md#tst-s5-02) | concurrency |
+| [S5-03](sprints/s5.md#s5-03) | [TST-S5-03](TEST_CASES.md#tst-s5-03) | concurrency |
+| [S5-04](sprints/s5.md#s5-04) | [TST-S5-04](TEST_CASES.md#tst-s5-04) | integration |
+| [S5-05](sprints/s5.md#s5-05) | [TST-S5-05](TEST_CASES.md#tst-s5-05) | component |
+| [S5-06](sprints/s5.md#s5-06) | [TST-S5-06](TEST_CASES.md#tst-s5-06) | concurrency |
+| [S5-07](sprints/s5.md#s5-07) | [TST-S5-07](TEST_CASES.md#tst-s5-07) | acceptance |
+| [S6-01](sprints/s6.md#s6-01) | [TST-S6-01](TEST_CASES.md#tst-s6-01) | security |
+| [S6-02](sprints/s6.md#s6-02) | [TST-S6-02](TEST_CASES.md#tst-s6-02) | concurrency |
+| [S6-03](sprints/s6.md#s6-03) | [TST-S6-03](TEST_CASES.md#tst-s6-03) | component |
+| [S6-04](sprints/s6.md#s6-04) | [TST-S6-04](TEST_CASES.md#tst-s6-04) | integration |
+| [S6-05](sprints/s6.md#s6-05) | [TST-S6-05](TEST_CASES.md#tst-s6-05) | acceptance |
+| [S7-01](sprints/s7.md#s7-01) | [TST-S7-01](TEST_CASES.md#tst-s7-01) | security |
+| [S7-02](sprints/s7.md#s7-02) | [TST-S7-02](TEST_CASES.md#tst-s7-02) | deployment |
+| [S7-03](sprints/s7.md#s7-03) | [TST-S7-03](TEST_CASES.md#tst-s7-03) | recovery |
+| [S7-04](sprints/s7.md#s7-04) | [TST-S7-04](TEST_CASES.md#tst-s7-04) | performance |
+| [S7-05](sprints/s7.md#s7-05) | [TST-S7-05](TEST_CASES.md#tst-s7-05) | acceptance |
+| [S7-06](sprints/s7.md#s7-06) | [TST-S7-06](TEST_CASES.md#tst-s7-06) | deployment |

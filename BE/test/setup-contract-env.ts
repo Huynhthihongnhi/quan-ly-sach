@@ -1,0 +1,9 @@
+process.env.PORT = process.env.PORT ?? '3000';
+process.env.NODE_ENV = process.env.NODE_ENV ?? 'test';
+process.env.DATABASE_HOST = process.env.DATABASE_HOST ?? '127.0.0.1';
+process.env.DATABASE_PORT = process.env.DATABASE_PORT ?? '3306';
+process.env.DATABASE_USERNAME = process.env.DATABASE_USERNAME ?? 'app';
+process.env.DATABASE_PASSWORD = process.env.DATABASE_PASSWORD ?? 'local-app-change-me';
+process.env.DATABASE_NAME = process.env.DATABASE_NAME ?? 'quan_ly_sach_test';
+process.env.CONTRACT_TEST_ACTOR = '1';
+process.env.ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ?? 'http://127.0.0.1:3000';

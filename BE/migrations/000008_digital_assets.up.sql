@@ -1,0 +1,22 @@
+CREATE TABLE digital_assets (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  book_id BIGINT UNSIGNED NOT NULL,
+  storage_key VARCHAR(191) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  mime_type VARCHAR(100) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  byte_size BIGINT UNSIGNED NOT NULL,
+  content_hash BINARY(32) NOT NULL,
+  state VARCHAR(16) NOT NULL DEFAULT 'quarantine',
+  read_access VARCHAR(16) NOT NULL DEFAULT 'authenticated',
+  download_requires_card BOOLEAN NOT NULL DEFAULT TRUE,
+  rights_note VARCHAR(500) NOT NULL,
+  uploaded_by BIGINT UNSIGNED NOT NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_assets_storage_key (storage_key),
+  KEY idx_assets_book_state (book_id, state),
+  CONSTRAINT fk_assets_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_assets_uploader FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE RESTRICT,
+  CONSTRAINT chk_assets_state CHECK (state IN ('quarantine','ready','rejected','archived')),
+  CONSTRAINT chk_assets_access CHECK (read_access IN ('public','authenticated','card')),
+  CONSTRAINT chk_assets_size CHECK (byte_size > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
