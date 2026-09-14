@@ -3,6 +3,9 @@ export type OutboxState = 'queued' | 'processing' | 'sent' | 'failed' | 'cancell
 export interface OutboxPayload {
   token: string;
   linkUrl: string;
+  loanId?: string;
+  dueAtSnapshot?: string;
+  kind?: string;
 }
 
 export interface EnqueueOutboxInput {

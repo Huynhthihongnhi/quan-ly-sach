@@ -9,6 +9,7 @@ export class CirculationConfigService {
   readonly loanReauthMaxFailures: number;
   readonly loanReauthWindowMs: number;
   readonly maxCopyPickAttempts: number;
+  readonly loanTransitionDeadlockRetries: number;
 
   constructor(configService: ConfigService<AppEnvironmentVariables, true>) {
     this.maxActiveLoans = Number(configService.get('MAX_ACTIVE_LOANS', { infer: true }) ?? 5);
@@ -21,5 +22,8 @@ export class CirculationConfigService {
       configService.get('LOAN_REAUTH_WINDOW_MS', { infer: true }) ?? 15 * 60 * 1000,
     );
     this.maxCopyPickAttempts = 32;
+    this.loanTransitionDeadlockRetries = Number(
+      configService.get('LOAN_TRANSITION_DEADLOCK_RETRIES', { infer: true }) ?? 3,
+    );
   }
 }

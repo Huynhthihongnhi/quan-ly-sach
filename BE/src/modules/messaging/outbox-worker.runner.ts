@@ -1,7 +1,13 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy, Optional } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { MessagingConfigService } from './messaging-config.service';
 import { OutboxProcessorService } from './outbox-processor.service';
+
+export const LOAN_REMINDER_SCHEDULER = Symbol('LOAN_REMINDER_SCHEDULER');
+
+export interface LoanReminderSchedulerHook {
+  scanDueReminders(): Promise<number>;
+}
 
 @Injectable()
 export class OutboxWorkerRunner implements OnModuleDestroy {
@@ -13,6 +19,9 @@ export class OutboxWorkerRunner implements OnModuleDestroy {
   constructor(
     private readonly processor: OutboxProcessorService,
     private readonly config: MessagingConfigService,
+    @Optional()
+    @Inject(LOAN_REMINDER_SCHEDULER)
+    private readonly loanReminderScheduler?: LoanReminderSchedulerHook,
   ) {}
 
   onModuleDestroy(): void {
@@ -33,6 +42,9 @@ export class OutboxWorkerRunner implements OnModuleDestroy {
 
     while (!this.stopRequested) {
       await this.processor.runMaintenance();
+      if (this.loanReminderScheduler) {
+        await this.loanReminderScheduler.scanDueReminders();
+      }
       const processed = await this.processor.processBatch(this.workerId);
       if (processed === 0) {
         await sleep(this.config.jobPollSeconds * 1000);

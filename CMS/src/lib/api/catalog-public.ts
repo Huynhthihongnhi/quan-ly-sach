@@ -29,7 +29,7 @@ export interface PublicBookSummary {
 export interface PublicBookDetail extends PublicBookSummary {
   publisherName: string | null;
   description: string | null;
-  availableCopies: null;
+  availableCopies: number | null;
   digitalAssets: PublicDigitalAsset[];
 }
 

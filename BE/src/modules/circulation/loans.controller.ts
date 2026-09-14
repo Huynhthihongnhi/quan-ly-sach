@@ -1,10 +1,11 @@
-import { Body, Controller, Headers, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Param, Post, Req, Res } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ApiException } from '../../common/http/api.exception';
 import { RequirePermissions } from '../../common/http/decorators/require-permissions.decorator';
 import { ErrorCode } from '../../common/http/error-code';
 import { RequestWithContext } from '../../common/http/types/request-with-context';
+import { CancelLoanDto } from './dto/loan-version.dto';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { LoansService } from './loans.service';
 
@@ -14,6 +15,19 @@ const IDEMPOTENCY_KEY_PATTERN = /^[\x21-\x7E]{1,64}$/;
 @Controller('loans')
 export class LoansController {
   constructor(private readonly loansService: LoansService) {}
+
+  @RequirePermissions('loans.read.own')
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a loan receipt for the signed-in user' })
+  getLoan(@Param('id') id: string, @Req() req: RequestWithContext) {
+    return this.loansService
+      .getLoanDetail({
+        loanId: id,
+        actingUserId: req.actor!.userId,
+        permissionCodes: req.actor!.permissionCodes,
+      })
+      .then((data) => ({ data }));
+  }
 
   @RequirePermissions('loans.create.own')
   @Post()
@@ -50,5 +64,22 @@ export class LoansController {
     }
 
     return { data: result.data };
+  }
+
+  @RequirePermissions('loans.cancel.own')
+  @HttpCode(200)
+  @Post(':id/cancel')
+  @ApiOperation({ summary: 'Cancel a reserved loan' })
+  cancelLoan(@Param('id') id: string, @Body() body: CancelLoanDto, @Req() req: RequestWithContext) {
+    return this.loansService
+      .cancelLoan({
+        loanId: id,
+        actingUserId: req.actor!.userId,
+        permissionCodes: req.actor!.permissionCodes,
+        expectedVersion: body.version,
+        reason: body.reason ?? null,
+        requestId: req.requestId,
+      })
+      .then((data) => ({ data }));
   }
 }

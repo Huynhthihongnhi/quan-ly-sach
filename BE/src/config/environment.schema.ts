@@ -23,4 +23,5 @@ export interface AppEnvironmentVariables {
   RESERVATION_TTL_SECONDS?: number;
   LOAN_REAUTH_MAX_FAILURES?: number;
   LOAN_REAUTH_WINDOW_MS?: number;
+  LOAN_TRANSITION_DEADLOCK_RETRIES?: number;
 }

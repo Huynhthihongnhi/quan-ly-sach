@@ -53,6 +53,15 @@ export class CatalogRepository {
     return this.topics.findOne({ where: { id } });
   }
 
+  async findCopyByIdForUpdate(manager: EntityManager, copyId: string): Promise<BookCopy | null> {
+    return manager
+      .getRepository(BookCopy)
+      .createQueryBuilder('copy')
+      .where('copy.id = :copyId', { copyId })
+      .setLock('pessimistic_write')
+      .getOne();
+  }
+
   async findBookByIdForUpdate(manager: EntityManager, bookId: string): Promise<Book | null> {
     return manager
       .getRepository(Book)

@@ -1,10 +1,11 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { CLOCK, type Clock } from '../../platform/clock/clock.interface';
 import { PayloadCipherService } from './payload-cipher.service';
 import { MessagingConfigService } from './messaging-config.service';
 import { OutboxRepository } from './outbox.repository';
 import type { EmailOutbox } from './entities/email-outbox.entity';
+import { OUTBOX_SEND_GATE, type OutboxSendGate } from './outbox-send-gate.token';
 import { MAIL_ADAPTER, type MailAdapter, type OutboxPayload } from './messaging.types';
 
 export class OutboxProcessingError extends Error {
@@ -29,6 +30,7 @@ export class OutboxProcessorService {
     private readonly config: MessagingConfigService,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(MAIL_ADAPTER) private readonly mailAdapter: MailAdapter,
+    @Optional() @Inject(OUTBOX_SEND_GATE) private readonly sendGate?: OutboxSendGate,
   ) {}
 
   async runMaintenance(): Promise<void> {
@@ -76,6 +78,21 @@ export class OutboxProcessorService {
 
     try {
       const payload = this.decryptPayload(item);
+      if (
+        this.sendGate &&
+        (await this.sendGate.shouldCancelBeforeSend(item.templateCode, payload))
+      ) {
+        await this.dataSource.transaction((manager) =>
+          this.outboxRepository.cancelProcessing(manager, {
+            id: item.id,
+            workerId,
+            now,
+            errorCode: 'loan_reminder_stale',
+          }),
+        );
+        return;
+      }
+
       await this.mailAdapter.send(this.buildMailMessage(item, payload));
       await this.dataSource.transaction(async (manager) => {
         const finalized = await this.outboxRepository.finalizeSent(manager, {

@@ -4,6 +4,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { getPublicBook, type PublicBookDetail } from '@/lib/api/catalog-public';
 import { downloadPolicyHint } from '@/features/digital/digital-content-messages';
+import { BorrowBookPanel } from '@/features/circulation/BorrowBookPanel';
 import { ApiClientError } from '@/lib/api/types';
 
 export function PublicBookDetailPage(): React.JSX.Element {
@@ -64,7 +65,12 @@ export function PublicBookDetailPage(): React.JSX.Element {
         </p>
       ) : null}
       {book.description ? <p className="text-sm text-slate-800">{book.description}</p> : null}
-      <p className="text-xs text-slate-500">Available copies: not shown before circulation is enabled.</p>
+      <BorrowBookPanel
+        bookId={book.id}
+        bookTitle={book.title}
+        availableCopies={book.availableCopies}
+        onAvailabilityChange={(copies) => setBook({ ...book, availableCopies: copies })}
+      />
 
       {book.digitalAssets.length > 0 ? (
         <section className="space-y-3 border-t border-slate-200 pt-4">
