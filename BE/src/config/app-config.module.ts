@@ -28,7 +28,10 @@ function validateEnvironment(config: Record<string, unknown>): Record<string, un
     throw new Error(`Invalid environment configuration: ${messages}`);
   }
 
-  return normalized;
+  // Keep every parsed env var (ALLOWED_ORIGINS, SESSION_*, CSRF_*, MAIL_*, ...) available to
+  // ConfigService; only apply the validated defaults for the core keys. Returning `normalized`
+  // alone would drop the rest and force AuthConfigService onto its fallbacks.
+  return { ...config, ...normalized };
 }
 
 @Module({

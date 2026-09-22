@@ -4,7 +4,6 @@ import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  base: '/cms/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -12,7 +11,10 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5174,
+    port: 8081,
+    host: true,
+    // Cho phep cloudflared quick tunnel (https://<random>.trycloudflare.com) toi dev server.
+    allowedHosts: ['.trycloudflare.com'],
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:3000',

@@ -13,3 +13,7 @@ CLAUDE.local.md
 BE/node_modules/
 BE/dist/
 BE/coverage/
+BE/.env
+BE/docker/env.production
+CMS/.env
+

@@ -1,0 +1,13 @@
+{
+  "goal": "Return a clear result when checkout validation fails",
+  "risk": "medium",
+  "scope": ["src/checkout", "test/checkout"],
+  "nonGoals": ["Changing payment providers", "Production deployment"],
+  "criteria": [
+    {"id": "AC-1", "description": "Invalid input returns the documented error contract", "requires": ["unit", "integration"]}
+  ],
+  "budget": {"maxIterations": 3, "maxMinutes": 60},
+  "questions": [],
+  "assumptions": [],
+  "claims": []
+}

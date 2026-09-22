@@ -270,7 +270,7 @@ export class LoansRepository {
     manager: EntityManager,
     input: {
       loanId: string;
-      actorUserId: string;
+      actorUserId: string | null;
       fromState: LoanState | null;
       toState: LoanState;
       requestId: string;

@@ -1,0 +1,10 @@
+{
+  "files": [
+    ".vibekit/scripts/premium/quality.mjs",
+    ".vibekit/scripts/premium/cli.mjs"
+  ],
+  "exclusions": [
+    "This example measures the quality collector and its CLI integration only.",
+    "Other runtime modules, tests, skill mirrors, docs and generated files are outside this sample. Expand the explicit file list for a broader review."
+  ]
+}

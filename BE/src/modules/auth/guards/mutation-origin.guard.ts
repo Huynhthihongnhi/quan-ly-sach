@@ -3,6 +3,7 @@ import { ApiException } from '../../../common/http/api.exception';
 import { ErrorCode } from '../../../common/http/error-code';
 import { RequestWithContext } from '../../../common/http/types/request-with-context';
 import { AuthConfigService } from '../auth-config.service';
+import { isOriginAllowed } from '../origin-allowlist';
 
 const LIBRARY_WEB_HEADER = 'library-web';
 const TEST_ACTOR_HEADER = 'x-contract-test-actor';
@@ -28,7 +29,7 @@ export class MutationOriginGuard implements CanActivate {
       throw new ApiException(403, ErrorCode.FORBIDDEN, 'Origin verification failed.');
     }
 
-    if (!origin || !this.authConfig.allowedOrigins.includes(origin)) {
+    if (!origin || !isOriginAllowed(origin, this.authConfig.allowedOrigins)) {
       throw new ApiException(403, ErrorCode.FORBIDDEN, 'Origin verification failed.');
     }
 

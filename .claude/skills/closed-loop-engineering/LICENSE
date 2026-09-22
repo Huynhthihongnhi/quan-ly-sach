@@ -1,0 +1,125 @@
+MVCK Premium License 1.0
+Identifier: LicenseRef-MVCK-Premium-1.0
+
+Copyright (c) 2026 Bui Van Giang
+All rights reserved except as expressly granted below.
+
+1. Licensor and scope
+
+Bui Van Giang is the licensor ("Licensor") of the original Premium material
+that the Licensor owns or is authorized to license ("Premium Material").
+This includes original Premium CLI modules, the closed-loop-engineering
+skill, Premium documentation, and original Premium additions to the kit.
+The kit is licensed, not sold. This is a proprietary license, not an
+open-source license for the Premium Material.
+
+Inherited open-source material, separately licensed components, and rights
+previously granted under MIT or another license are excluded from the
+restrictions in this license. They retain their applicable licenses.
+The 26 inherited skills marked MIT in the distribution catalog, including
+their provider copies, remain MIT. THIRD_PARTY_NOTICES.md preserves the
+inherited MIT notice and identifies upstream notices. A file containing
+both inherited and new material does not lose its inherited license rights.
+
+2. Who may use Premium Material
+
+A purchase or an explicit written gift or evaluation grant from the Licensor
+must authorize your access. The order or grant identifies one named user
+unless the Licensor expressly grants additional seats. A coupon alone,
+repository access, a download link, or the absence of technical activation
+does not grant a license to Premium Material.
+
+Subject to this license and the applicable order or written grant, the
+Licensor grants the authorized user a non-exclusive, non-transferable right
+to use the delivered Premium Material for personal work, internal business
+work, and commercial or client projects.
+
+3. Permitted use
+
+The authorized user may:
+
+- Install and use the kit on their own or employer-managed devices, and
+  across multiple projects, for that user's work.
+- Make private modifications and reasonable backup copies.
+- Use chosen coding-agent services to process the material solely to assist
+  that user's authorized work, subject to those services' terms. This does
+  not permit publishing it as a shared skill, dataset, or hosted kit service.
+- Create, sell, license, publish, and deliver their own project output.
+  This includes application code, task records, and project-specific
+  configuration and managed instruction blocks generated using the kit.
+
+The Licensor claims no ownership of your original project output merely
+because you used the kit. This output permission does not authorize
+redistribution of the Premium skill library, reusable CLI source, or
+Premium documentation as a substitute for the kit. Open-source components
+within any output keep their own applicable license requirements.
+
+4. Restrictions
+
+Except for the output permission above, an applicable open-source license,
+non-waivable law, or the Licensor's express written authorization, you may
+not:
+
+- Share, publish, sublicense, sell, redistribute, or transfer Premium
+  Material, including modified copies, to another person or organization.
+- Share a seat, customer credential, signed entitlement, or private kit
+  download to provide access to an unauthorized user.
+- Offer the Premium Material as a competing kit, shared prompt/skill
+  library, hosted service, or other product that provides the kit itself.
+- Remove copyright, license, or attribution notices from retained copies.
+
+Client work is permitted. Giving the client the reusable Premium kit or
+allowing other people to use your seat requires their own authorized seats
+or a separate written agreement. The Licensor may grant gifts, team seats,
+transfers, or redistribution rights in writing.
+
+5. Delivered versions, updates, and services
+
+Unless an order or grant clearly states a fixed use term before acceptance,
+the authorized user may continue using versions lawfully delivered to them,
+subject to this license. Updates, new downloads, support, and hosted services
+are included only for the period and scope stated in the order or grant.
+This license alone promises no update period or service availability.
+
+Cancellation or expiry of update access does not by itself end the right
+to use a previously delivered version. A refund, fixed-term grant, or
+material breach may have consequences expressly stated in the applicable
+terms, subject to non-waivable law. This license does not authorize remote
+deletion of a customer's project files.
+
+Later license changes apply to later acquisitions under those terms. They
+do not retroactively replace licenses already granted for earlier copies.
+
+6. Ownership and third-party rights
+
+The Licensor and other applicable rightsholders retain their copyrights.
+No rights to third-party software, provider accounts, trademarks, or services
+are granted beyond their own licenses and terms. Preserve and supply the
+applicable notices when distributing material under a separate permission.
+If these terms conflict with an applicable open-source license for an
+excluded component, that component's open-source license governs it.
+
+7. Warranty and liability
+
+TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE PREMIUM MATERIAL IS PROVIDED
+"AS IS" AND "AS AVAILABLE", WITHOUT WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. NO ERROR-FREE OPERATION OR
+SPECIFIC ENGINEERING, SECURITY, OR BUSINESS RESULT IS PROMISED.
+
+TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSOR IS NOT LIABLE FOR
+INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM USE
+OF THE PREMIUM MATERIAL. NOTHING IN THIS LICENSE EXCLUDES LIABILITY OR
+CONSUMER RIGHTS THAT CANNOT LAWFULLY BE EXCLUDED.
+
+8. Termination and separate agreements
+
+For a material breach of this license, the Licensor may terminate the
+Premium grant by written notice if the breach is not cured within 30 days
+after notice, where cure is possible. On termination, stop using the Premium
+Material and remove unauthorized copies, subject to applicable retention
+requirements. Rights in your own project output and excluded open-source
+components are unaffected.
+
+A separate written agreement with the Licensor may grant different Premium
+rights. No oral statement, automated CLI status, or payment discount expands
+these rights by itself. Mandatory applicable law takes precedence.

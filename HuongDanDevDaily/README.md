@@ -258,6 +258,7 @@ riêng cho BE.
 | Link tunnel báo `DNS_PROBE` / không thấy DNS | Tunnel đã đóng | Chạy lại `make tunnel-cms`, dùng URL mới, giữ terminal mở |
 | Tunnel log `Unauthorized: Tunnel not found` | Lỗi tạm thời phía Cloudflare | Tắt và chạy lại `make tunnel-cms` để lấy tunnel mới |
 | Đăng nhập qua tunnel bị 403 | URL chưa có trong `ALLOWED_ORIGINS` | Xem mục 5, thêm URL vào `BE/.env` rồi khởi động lại BE |
+| Đăng nhập local bị 403 "Origin verification failed" | `ALLOWED_ORIGINS` thiếu `http://localhost:8081` | Thêm `http://localhost:8081,http://127.0.0.1:8081` vào `ALLOWED_ORIGINS` trong `BE/.env`, khởi động lại BE |
 | `make create-admin` báo `created:false` | Đã có admin rồi | Đăng nhập bằng admin có sẵn (mục 6) |
 
 ## 9. Cổng mặc định
