@@ -1,0 +1,99 @@
+# Production compose template for S7-02 (Ubuntu Server 24.04 LTS, intranet/VPN only per D10).
+# This is a proposal to adapt at actual deploy time (BE/docs/07-operations.md section 6-7),
+# not a live deployment. Validate locally with:
+#   docker compose -f docker/compose.prod.yml config
+#
+# Usage (bring-up order matters: mysql must create the app/migration users and the schema must
+# be migrated before api/worker can pass their readiness check):
+#   cp docker/env.production.example docker/env.production   # fill in every REQUIRED value
+#   docker compose -f docker/compose.prod.yml up -d --build mysql
+#   docker compose -f docker/compose.prod.yml run --rm api node dist/tools/db-cli.js up
+#   docker compose -f docker/compose.prod.yml up -d --build
+#
+# Only `proxy` publishes host ports. mysql, api, and worker are reachable only on the compose
+# network, matching TST-S7-02 ("Chỉ cổng dự kiến truy cập được"; "DB không truy cập công khai").
+# The proxy itself must still sit behind the school intranet/VPN boundary (D10); this file
+# cannot enforce network-level reachability from the host OS or firewall.
+
+services:
+  mysql:
+    image: mysql:8.4.5@sha256:679e7e924f38a3cbb62a3d7df32924b83f7321a602d3f9f967c01b3df18495d6
+    restart: unless-stopped
+    env_file:
+      - env.production
+    environment:
+      TZ: UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+      - --explicit_defaults_for_timestamp=ON
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init-prod:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 --silent']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  api:
+    image: quan-ly-sach-be:${APP_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - env.production
+    volumes:
+      - digital_storage:/app/storage/digital-assets
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://127.0.0.1:3000/health/ready',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  worker:
+    image: quan-ly-sach-be:${APP_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ['node', 'dist/worker.js']
+    restart: unless-stopped
+    env_file:
+      - env.production
+    volumes:
+      - digital_storage:/app/storage/digital-assets
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  proxy:
+    image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./proxy/certs:/etc/nginx/certs:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+    name: quan-ly-sach-prod-mysql-data
+  digital_storage:
+    name: quan-ly-sach-prod-digital-storage

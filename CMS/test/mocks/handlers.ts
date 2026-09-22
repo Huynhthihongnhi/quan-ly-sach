@@ -1,5 +1,13 @@
 import { http, HttpResponse, delay } from 'msw';
 import { catalogHandlers, setCatalogAdminSession, setCatalogNetworkFail } from './catalog-handlers';
+import {
+  circulationHandlers,
+  getLoanCreateCount,
+  resetCirculationMocks,
+  setBook106AvailableCopies,
+} from './circulation-handlers';
+
+export { getLoanCreateCount, setBook106AvailableCopies };
 import { digitalHandlers, resetDigitalMocks } from './digital-handlers';
 
 const API_BASE = '/api/v1';
@@ -12,11 +20,24 @@ export const adminPermissions = [
   'permissions.read',
   'catalog.read',
   'catalog.write',
+  'loans.read.any',
+  'loans.manage',
 ];
 
-export const librarianPermissions = ['catalog.read', 'catalog.write', 'copies.write'];
+export const librarianPermissions = [
+  'catalog.read',
+  'catalog.write',
+  'copies.write',
+  'loans.read.any',
+  'loans.manage',
+];
 
-export const readerPermissions = ['digital.download.own'];
+export const readerPermissions = [
+  'digital.download.own',
+  'loans.create.own',
+  'loans.read.own',
+  'loans.cancel.own',
+];
 
 export const FORGOT_PASSWORD_ACCEPTED_MESSAGE =
   'If an account exists for that email, password reset instructions will be sent shortly.';
@@ -33,6 +54,7 @@ export function resetMockSession(): void {
   setCatalogNetworkFail(false);
   setCatalogAdminSession(false);
   resetDigitalMocks();
+  resetCirculationMocks();
 }
 
 export function setMockSession(session: 'admin' | 'reader' | 'librarian' | null): void {
@@ -331,6 +353,7 @@ export const handlers = [
   }),
   ...catalogHandlers,
   ...digitalHandlers,
+  ...circulationHandlers(() => activeSession),
 ];
 
 export const slowLoginHandler = http.post(`${API_BASE}/auth/login`, async () => {

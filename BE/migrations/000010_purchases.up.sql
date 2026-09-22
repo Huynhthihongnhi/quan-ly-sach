@@ -1,0 +1,40 @@
+CREATE TABLE purchase_requests (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  requester_id BIGINT UNSIGNED NOT NULL,
+  title VARCHAR(300) NOT NULL,
+  author_text VARCHAR(300) NOT NULL,
+  publication_year SMALLINT UNSIGNED NOT NULL,
+  note VARCHAR(1000) NULL,
+  state VARCHAR(16) NOT NULL DEFAULT 'pending',
+  request_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  request_hash BINARY(32) NOT NULL,
+  reviewed_by BIGINT UNSIGNED NULL,
+  review_reason VARCHAR(1000) NULL,
+  reviewed_at DATETIME(6) NULL,
+  version BIGINT UNSIGNED NOT NULL DEFAULT 1,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_purchase_request_key (requester_id, request_key),
+  KEY idx_purchase_user_time (requester_id, created_at, id),
+  KEY idx_purchase_queue (state, created_at, id),
+  CONSTRAINT fk_purchase_requester FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_purchase_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE RESTRICT,
+  CONSTRAINT chk_purchase_state CHECK (state IN ('pending','approved','rejected')),
+  CONSTRAINT chk_purchase_year CHECK (publication_year BETWEEN 1000 AND 9999),
+  CONSTRAINT chk_purchase_review CHECK (state = 'pending' OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL)),
+  CONSTRAINT chk_purchase_reject_reason CHECK (state <> 'rejected' OR (review_reason IS NOT NULL AND CHAR_LENGTH(TRIM(review_reason)) > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE purchase_request_events (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  purchase_request_id BIGINT UNSIGNED NOT NULL,
+  actor_user_id BIGINT UNSIGNED NOT NULL,
+  from_state VARCHAR(16) NULL,
+  to_state VARCHAR(16) NOT NULL,
+  reason VARCHAR(1000) NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (id),
+  KEY idx_purchase_events_time (purchase_request_id, created_at, id),
+  CONSTRAINT fk_purchase_events_request FOREIGN KEY (purchase_request_id) REFERENCES purchase_requests(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_purchase_events_actor FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

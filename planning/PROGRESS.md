@@ -53,11 +53,11 @@ Evidence phải là đường dẫn tương đối tới file có thật, ví d�
 | S4-05 | S4 | P2 | done | S4-04 | Cursor agent | planning/evidence/S4-05.md | - |
 | S5-01 | S5 | P2 | done | S3-06, S4-01 | Cursor agent | planning/evidence/S5-01.md | - |
 | S5-02 | S5 | P2 | done | S5-01 | Cursor agent | planning/evidence/S5-02.md | - |
-| S5-03 | S5 | P2 | ready | S5-02 | - | - | - |
-| S5-04 | S5 | P2 | locked | S5-03, S2-01 | - | - | Chờ phụ thuộc |
-| S5-05 | S5 | P2 | locked | S5-03 | - | - | Chờ phụ thuộc |
-| S5-06 | S5 | P2 | locked | S5-04, S5-05 | - | - | Chờ phụ thuộc |
-| S5-07 | S5 | P2 | locked | S5-06 | - | - | Chờ phụ thuộc |
+| S5-03 | S5 | P2 | done | S5-02 | Cursor agent | planning/evidence/S5-03.md | - |
+| S5-04 | S5 | P2 | done | S5-03, S2-01 | Cursor agent | planning/evidence/S5-04.md | - |
+| S5-05 | S5 | P2 | done | S5-03 | Cursor agent | planning/evidence/S5-05.md | - |
+| S5-06 | S5 | P2 | done | S5-04, S5-05 | Cursor agent | planning/evidence/S5-06.md | - |
+| S5-07 | S5 | P2 | ready | S5-06 | - | - | - |
 | S6-01 | S6 | P2 | locked | S2-06 | - | - | Chờ phụ thuộc |
 | S6-02 | S6 | P2 | locked | S6-01, S1-05 | - | - | Chờ phụ thuộc |
 | S6-03 | S6 | P2 | locked | S6-02 | - | - | Chờ phụ thuộc |
@@ -72,6 +72,10 @@ Evidence phải là đường dẫn tương đối tới file có thật, ví d�
 
 ## Nhật ký thay đổi tiến độ
 
+- 2026-09-14: S5-06 done (loan-recovery concurrency 7/7 TST-S5-06, SQL invariants, validate pass). S5-07 ready.
+- 2026-09-14: S5-05 done (loan read APIs, CMS borrow/my loans/circulation/print, component 5/5 TST-S5-05, BE+CMS validate pass). S5-06 ready.
+- 2026-09-14: S5-04 done (loan due reminder scheduler + outbox, unit timezone, integration 5/5 TST-S5-04, validate pass). S5-05 ready.
+- 2026-09-14: S5-03 done (loan cancel/checkout/return/lost, unit loan-state, concurrency 5/5 TST-S5-03, validate pass). S5-04 ready.
 - 2026-09-14: S5-02 done (POST /loans reservation, idempotency, re-auth rate limit, concurrency 6/6 TST-S5-02, validate pass). S5-03 ready.
 - 2026-09-14: S5-01 done (migration 000009 circulation, integration 8/8 TST-S5-01, validate pass). S5-02 ready.
 - 2026-09-14: S4-05 done (digital rights matrix, acceptance 5/5 TST-S4-05, CMS disclaimer test). Sprint S4 hoàn thành.

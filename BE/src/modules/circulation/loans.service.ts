@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { timingSafeEqual } from 'node:crypto';
-import { DataSource, EntityManager, QueryFailedError } from 'typeorm';
+import { DataSource, QueryFailedError, type EntityManager } from 'typeorm';
 import { ApiException } from '../../common/http/api.exception';
 import { ErrorCode } from '../../common/http/error-code';
+import { buildPageMeta } from '../../common/http/pagination/page-meta';
 import { CLOCK, Clock } from '../../platform/clock/clock.interface';
 import { AuditService } from '../audit/audit.service';
 import { AuthConfigService } from '../auth/auth-config.service';
@@ -16,8 +17,23 @@ import { UserRepository } from '../identity/user.repository';
 import { CirculationConfigService } from './circulation-config.service';
 import { CirculationInventoryService } from './circulation-inventory.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
+import { runWithDeadlockRetry } from './loan-deadlock.util';
+import { computeDueAt } from './loan-due-date.util';
 import { buildLoanRequestHash, normalizeLoanCardNumber } from './loan-request-hash.util';
-import { LoanResponse, toLoanResponse } from './mappers/loan.mapper';
+import {
+  assertReservationActiveForCheckout,
+  isAllowedLoanTransition,
+  type LoanTransitionAction,
+  targetStateForAction,
+} from './loan-state';
+import { AdminLoanListQueryDto, OwnLoanListQueryDto } from './dto/loan-list-query.dto';
+import {
+  LoanDetailResponse,
+  LoanResponse,
+  toAdminLoanResponse,
+  toLoanEventResponse,
+  toLoanResponse,
+} from './mappers/loan.mapper';
 import { LoansRepository } from './loans.repository';
 
 const INVALID_PASSWORD_MESSAGE = 'Invalid email or password.';
@@ -350,6 +366,327 @@ export class LoansService {
       }
     }
     throw new ApiException(409, ErrorCode.NO_COPY_AVAILABLE, 'No copy is available to reserve.');
+  }
+
+  async cancelLoan(params: {
+    loanId: string;
+    actingUserId: string;
+    permissionCodes: string[];
+    expectedVersion: string;
+    reason?: string | null;
+    requestId: string;
+  }): Promise<LoanResponse> {
+    return this.runTransition({
+      ...params,
+      action: 'cancel',
+      auditAction: 'loan.cancel',
+    });
+  }
+
+  async checkoutLoan(params: {
+    loanId: string;
+    actingUserId: string;
+    permissionCodes: string[];
+    expectedVersion: string;
+    requestId: string;
+  }): Promise<LoanResponse> {
+    return this.runTransition({
+      ...params,
+      action: 'checkout',
+      auditAction: 'loan.checkout',
+      requireManage: true,
+    });
+  }
+
+  async returnLoan(params: {
+    loanId: string;
+    actingUserId: string;
+    permissionCodes: string[];
+    expectedVersion: string;
+    conditionState: 'serviceable' | 'repair';
+    requestId: string;
+  }): Promise<LoanResponse> {
+    return this.runTransition({
+      ...params,
+      action: 'return',
+      auditAction: 'loan.return',
+      requireManage: true,
+      copyConditionState: params.conditionState,
+    });
+  }
+
+  async markLostLoan(params: {
+    loanId: string;
+    actingUserId: string;
+    permissionCodes: string[];
+    expectedVersion: string;
+    reason: string;
+    requestId: string;
+  }): Promise<LoanResponse> {
+    return this.runTransition({
+      ...params,
+      action: 'mark_lost',
+      auditAction: 'loan.lost',
+      requireManage: true,
+      copyConditionState: 'lost',
+      transitionReason: params.reason,
+    });
+  }
+
+  private async runTransition(params: {
+    loanId: string;
+    actingUserId: string;
+    permissionCodes: string[];
+    expectedVersion: string;
+    requestId: string;
+    action: LoanTransitionAction;
+    auditAction: string;
+    requireManage?: boolean;
+    reason?: string | null;
+    transitionReason?: string;
+    copyConditionState?: 'serviceable' | 'repair' | 'lost';
+  }): Promise<LoanResponse> {
+    await this.circulationInventory.assertSchemaReady();
+    if (!this.circulationInventory.isEnabled()) {
+      throw new ApiException(503, ErrorCode.DEPENDENCY_UNAVAILABLE, 'Circulation is not enabled.');
+    }
+
+    if (params.requireManage && !params.permissionCodes.includes('loans.manage')) {
+      throw new ApiException(
+        403,
+        ErrorCode.FORBIDDEN,
+        'You do not have permission for this action.',
+      );
+    }
+
+    return runWithDeadlockRetry(this.circulationConfig.loanTransitionDeadlockRetries, () =>
+      this.dataSource.transaction((manager) => this.transitionInTransaction(manager, params)),
+    );
+  }
+
+  private async transitionInTransaction(
+    manager: EntityManager,
+    params: {
+      loanId: string;
+      actingUserId: string;
+      permissionCodes: string[];
+      expectedVersion: string;
+      requestId: string;
+      action: LoanTransitionAction;
+      auditAction: string;
+      reason?: string | null;
+      transitionReason?: string;
+      copyConditionState?: 'serviceable' | 'repair' | 'lost';
+    },
+  ): Promise<LoanResponse> {
+    const loan = await this.loansRepository.findByIdForUpdate(manager, params.loanId);
+    if (!loan) {
+      throw new ApiException(404, ErrorCode.NOT_FOUND, 'Loan was not found.');
+    }
+
+    const canManage = params.permissionCodes.includes('loans.manage');
+    if (!canManage && loan.userId !== params.actingUserId) {
+      throw new ApiException(
+        403,
+        ErrorCode.FORBIDDEN,
+        'Loan does not belong to the signed-in user.',
+      );
+    }
+
+    if (loan.version !== params.expectedVersion) {
+      throw new ApiException(409, ErrorCode.VERSION_CONFLICT, 'Loan version has changed.');
+    }
+
+    if (!isAllowedLoanTransition(params.action, loan.state)) {
+      throw new ApiException(
+        409,
+        ErrorCode.INVALID_TRANSITION,
+        'Loan state transition is not allowed.',
+      );
+    }
+
+    const now = this.clock.now();
+    const user = await this.userRepository.findByIdForUpdate(manager, loan.userId);
+    if (!user || user.status !== 'active') {
+      throw new ApiException(
+        403,
+        ErrorCode.FORBIDDEN,
+        'User account cannot complete this loan action.',
+      );
+    }
+
+    const card = await this.cardsRepository.findByIdForUpdate(manager, loan.cardId);
+    if (!card) {
+      throw new ApiException(404, ErrorCode.NOT_FOUND, 'Library card was not found.');
+    }
+
+    if (params.action === 'checkout') {
+      try {
+        this.cardsService.assertCardEffective(card, now);
+      } catch (error) {
+        if (error instanceof ApiException) {
+          throw new ApiException(error.getStatus(), ErrorCode.CARD_NOT_ELIGIBLE, error.message);
+        }
+        throw error;
+      }
+      if (!assertReservationActiveForCheckout(loan.reservationExpiresAt, now)) {
+        throw new ApiException(
+          409,
+          ErrorCode.INVALID_TRANSITION,
+          'Reservation has expired and cannot be checked out.',
+        );
+      }
+    }
+
+    const copy = await this.catalogRepository.findCopyByIdForUpdate(manager, loan.copyId);
+    if (!copy) {
+      throw new ApiException(404, ErrorCode.NOT_FOUND, 'Book copy was not found.');
+    }
+
+    const toState = targetStateForAction(params.action);
+    const fromState = loan.state;
+
+    let closedAt: Date | null | undefined;
+    let checkedOutAt: Date | null | undefined;
+    let dueAt: Date | null | undefined;
+
+    if (params.action === 'cancel' || params.action === 'return' || params.action === 'mark_lost') {
+      closedAt = now;
+    }
+    if (params.action === 'checkout') {
+      checkedOutAt = now;
+      dueAt = computeDueAt(now, loan.requestedDays);
+    }
+
+    const updated = await this.loansRepository.transitionLoanWithVersion(manager, {
+      loanId: loan.id,
+      expectedVersion: params.expectedVersion,
+      toState,
+      closedAt,
+      checkedOutAt,
+      dueAt,
+    });
+
+    if (!updated) {
+      throw new ApiException(409, ErrorCode.VERSION_CONFLICT, 'Loan version has changed.');
+    }
+
+    if (params.copyConditionState) {
+      const copyUpdated = await this.catalogRepository.updateCopyWithVersion(manager, {
+        copyId: copy.id,
+        expectedVersion: copy.version,
+        conditionState: params.copyConditionState,
+      });
+      if (!copyUpdated) {
+        throw new ApiException(409, ErrorCode.VERSION_CONFLICT, 'Book copy version has changed.');
+      }
+    }
+
+    const eventReason = params.transitionReason ?? params.reason ?? null;
+    await this.loansRepository.appendLoanEvent(manager, {
+      loanId: loan.id,
+      actorUserId: params.actingUserId,
+      fromState,
+      toState: toState,
+      requestId: params.requestId,
+      reason: eventReason,
+    });
+
+    await this.auditService.append(manager, {
+      actorUserId: params.actingUserId,
+      action: params.auditAction,
+      targetType: 'loan',
+      targetId: loan.id,
+      outcome: 'success',
+      requestId: params.requestId,
+      details: {
+        fromState,
+        toState,
+        copyId: copy.id,
+        copyCondition: params.copyConditionState ?? null,
+      },
+    });
+
+    const bookId = await this.loansRepository.findBookIdForCopy(manager, loan.copyId);
+    if (!bookId) {
+      throw new ApiException(500, ErrorCode.INTERNAL_ERROR, 'Loan copy reference is missing.');
+    }
+
+    return toLoanResponse(updated, bookId);
+  }
+
+  async listOwnLoans(userId: string, query: OwnLoanListQueryDto) {
+    await this.assertCirculationReadable();
+    const now = this.clock.now();
+    const { items, total } = await this.loansRepository.listLoans({
+      userId,
+      state: query.state,
+      overdue: query.overdue,
+      now,
+      page: query.page,
+      pageSize: query.pageSize,
+    });
+    return {
+      data: items.map(({ loan, bookId }) => toLoanResponse(loan, bookId)),
+      meta: buildPageMeta(query.page, query.pageSize, total),
+    };
+  }
+
+  async listAdminLoans(query: AdminLoanListQueryDto) {
+    await this.assertCirculationReadable();
+    const now = this.clock.now();
+    const { items, total } = await this.loansRepository.listLoans({
+      userId: query.userId,
+      copyId: query.copyId,
+      state: query.state,
+      overdue: query.overdue,
+      now,
+      page: query.page,
+      pageSize: query.pageSize,
+    });
+    return {
+      data: items.map(({ loan, bookId }) => toAdminLoanResponse(loan, bookId)),
+      meta: buildPageMeta(query.page, query.pageSize, total),
+    };
+  }
+
+  async getLoanDetail(params: {
+    loanId: string;
+    actingUserId: string;
+    permissionCodes: string[];
+  }): Promise<LoanDetailResponse> {
+    await this.assertCirculationReadable();
+    const loan = await this.loansRepository.findById(params.loanId);
+    if (!loan) {
+      throw new ApiException(404, ErrorCode.NOT_FOUND, 'Loan was not found.');
+    }
+
+    const canReadAny = params.permissionCodes.includes('loans.read.any');
+    if (!canReadAny && loan.userId !== params.actingUserId) {
+      throw new ApiException(
+        403,
+        ErrorCode.FORBIDDEN,
+        'Loan does not belong to the signed-in user.',
+      );
+    }
+
+    const bookId = await this.loansRepository.findBookIdForCopyId(loan.copyId);
+    if (!bookId) {
+      throw new ApiException(500, ErrorCode.INTERNAL_ERROR, 'Loan copy reference is missing.');
+    }
+
+    const events = await this.loansRepository.listEventsForLoan(loan.id);
+    return {
+      ...toLoanResponse(loan, bookId),
+      events: events.map(toLoanEventResponse),
+    };
+  }
+
+  private async assertCirculationReadable(): Promise<void> {
+    await this.circulationInventory.assertSchemaReady();
+    if (!this.circulationInventory.isEnabled()) {
+      throw new ApiException(503, ErrorCode.DEPENDENCY_UNAVAILABLE, 'Circulation is not enabled.');
+    }
   }
 }
 

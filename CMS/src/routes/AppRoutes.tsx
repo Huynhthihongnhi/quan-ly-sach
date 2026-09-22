@@ -8,6 +8,9 @@ import { CatalogAdminBooksPage } from '@/features/catalog/CatalogAdminBooksPage'
 import { PublicBookDetailPage } from '@/features/catalog/PublicBookDetailPage';
 import { DigitalDocumentViewerPage } from '@/features/digital/DigitalDocumentViewerPage';
 import { PublicCatalogPage } from '@/features/catalog/PublicCatalogPage';
+import { CirculationAdminPage } from '@/features/circulation/CirculationAdminPage';
+import { LoanReceiptPage } from '@/features/circulation/LoanReceiptPage';
+import { MyLoansPage } from '@/features/circulation/MyLoansPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { RolesPage } from '@/features/roles/RolesPage';
 import { UsersPage } from '@/features/users/UsersPage';
@@ -52,6 +55,30 @@ export function AppRoutes(): React.JSX.Element {
           }
         />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route
+          path="/me/loans"
+          element={
+            <RequirePermission permission="loans.read.own">
+              <MyLoansPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="/me/loans/:id"
+          element={
+            <RequirePermission permission="loans.read.own">
+              <LoanReceiptPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="/circulation"
+          element={
+            <RequirePermission permission="loans.read.any">
+              <CirculationAdminPage />
+            </RequirePermission>
+          }
+        />
         <Route
           path="/catalog/manage/books"
           element={

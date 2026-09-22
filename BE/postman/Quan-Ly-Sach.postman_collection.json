@@ -1,0 +1,2072 @@
+{
+  "info": {
+    "name": "Quan-Ly-Sach API",
+    "description": "REST API thu vien noi bo (prefix /api/v1).\\n\\n1. Import environment Quan-Ly-Sach.local.postman_environment.json\\n2. Bat Postman: Settings > Cookies (tu dong luu session sau Login)\\n3. Chay folder 00 Session > Login (Admin) truoc cac request can quyen\\n4. Mutation can Origin, X-Requested-With, X-CSRF-Token (script collection tu gan)\\n5. Bootstrap admin mac dinh: admin@local.test / change-me-12chars (xem BE/README.md)\\n\\nSwagger local: {{baseUrl}}/docs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const method = pm.request.method;",
+          "const url = pm.request.url.toString();",
+          "const mutationMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];",
+          "const publicMutations = [",
+          "  '/auth/login',",
+          "  '/auth/forgot-password',",
+          "  '/auth/reset-password',",
+          "  '/auth/activate',",
+          "];",
+          "if (mutationMethods.includes(method)) {",
+          "  const origin = pm.environment.get('webOrigin');",
+          "  if (origin) {",
+          "    pm.request.headers.upsert({ key: 'Origin', value: origin });",
+          "  }",
+          "  pm.request.headers.upsert({ key: 'X-Requested-With', value: 'library-web' });",
+          "  const isPublic = publicMutations.some((path) => url.includes(path));",
+          "  if (!isPublic) {",
+          "    const csrf = pm.environment.get('csrfToken');",
+          "    if (csrf) {",
+          "      pm.request.headers.upsert({ key: 'X-CSRF-Token', value: csrf });",
+          "    }",
+          "  }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Session",
+      "description": "Dang nhap va cookie session",
+      "item": [
+        {
+          "name": "Health Live",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/health/live",
+            "description": ""
+          }
+        },
+        {
+          "name": "Health Ready",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/health/ready",
+            "description": ""
+          }
+        },
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Tao session cookie + luu csrfToken vao environment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const payload = body.data ?? body;",
+                  "if (payload.csrfToken) {",
+                  "  pm.environment.set('csrfToken', payload.csrfToken);",
+                  "}",
+                  "if (payload.user?.id) {",
+                  "  pm.environment.set('userId', payload.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auth Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "description": ""
+          }
+        },
+        {
+          "name": "Auth CSRF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/csrf",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const payload = body.data ?? body;",
+                  "if (payload.csrfToken) pm.environment.set('csrfToken', payload.csrfToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 Auth (public)",
+      "description": "Khong can session",
+      "item": [
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/forgot-password",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/reset-password",
+            "description": "Lay token tu Mailpit (8025) sau Forgot Password.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{challengeToken}}\",\n  \"newPassword\": \"NewValidPass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/activate",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{challengeToken}}\",\n  \"newPassword\": \"NewValidPass123!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Users and profile",
+      "description": "Can users.* / profiles.*",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create user (invited)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"reader.demo@local.test\",\n  \"displayName\": \"Reader Demo\",\n  \"phone\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Get user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Update user status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}/status",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\",\n  \"version\": \"{{userVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Send activation email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}/activation-email",
+            "description": ""
+          }
+        },
+        {
+          "name": "Get user profile (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}/profile",
+            "description": ""
+          }
+        },
+        {
+          "name": "Patch user profile (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}/profile",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Updated Name\",\n  \"phone\": null,\n  \"version\": \"{{profileVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get my profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/me/profile",
+            "description": ""
+          }
+        },
+        {
+          "name": "Patch my profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/me/profile",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"My Display Name\",\n  \"phone\": null,\n  \"version\": \"{{profileVersion}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Roles and permissions",
+      "description": "",
+      "item": [
+        {
+          "name": "List roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/roles?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "roles"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('roleId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/roles",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"demo_role\",\n  \"name\": \"Demo Role\",\n  \"description\": \"Postman test role\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Patch role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/roles/{{roleId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Role Updated\",\n  \"description\": null,\n  \"version\": \"{{roleVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/permissions?page=1&pageSize=100",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "permissions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Set role permissions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/roles/{{roleId}}/permissions",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissionCodes\": [\"catalog.read\"],\n  \"version\": \"{{roleVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get user roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}/roles",
+            "description": ""
+          }
+        },
+        {
+          "name": "Set user roles",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}/roles",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleIds\": [\"{{roleId}}\"],\n  \"version\": \"{{userVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "If-Match",
+                "value": "{{roleVersion}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/roles/{{roleId}}",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Audit",
+      "description": "",
+      "item": [
+        {
+          "name": "List audit events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/audit-events?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "audit-events"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Catalog (public)",
+      "description": "Khong can dang nhap",
+      "item": [
+        {
+          "name": "List published books",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('bookId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get published book",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "List categories (public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "categories"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List authors (public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/authors?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "authors"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List topics (public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/topics?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "topics"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Catalog (admin)",
+      "description": "Can catalog.read / catalog.write / copies.write",
+      "item": [
+        {
+          "name": "List admin books",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/books?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('bookId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create draft book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/books",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Demo Book\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"authorIds\": [\"{{authorId}}\"],\n  \"topicIds\": [\"{{topicId}}\"],\n  \"publicationYear\": 2024,\n  \"description\": \"Created from Postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const row = body.data ?? body;",
+                  "if (row?.id) pm.environment.set('bookId', row.id);",
+                  "if (row?.version) pm.environment.set('bookVersion', row.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get admin book",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/books/{{bookId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Patch admin book",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/books/{{bookId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Demo Book Updated\",\n  \"version\": \"{{bookVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Publish book",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/books/{{bookId}}/state",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"state\": \"published\",\n  \"version\": \"{{bookVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List admin categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/categories?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('categoryId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/categories",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"demo-cat\",\n  \"name\": \"Demo Category\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List admin authors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/authors?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "authors"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('authorId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/authors",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Author\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List admin topics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/topics?page=1&pageSize=50",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "topics"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('topicId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create topic",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/topics",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Topic\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List book copies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/books/{{bookId}}/copies?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "books",
+                "{{bookId}}",
+                "copies"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('copyId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create copy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/books/{{bookId}}/copies",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barcode\": \"BC-POSTMAN-001\",\n  \"shelfLocation\": \"A-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Patch copy",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/copies/{{copyId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shelfLocation\": \"A-02\",\n  \"version\": \"1\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Digital assets",
+      "description": "",
+      "item": [
+        {
+          "name": "Upload PDF for book",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/admin/books/{{bookId}}/assets",
+            "description": "Chon file PDF local. Can digital.write.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "rightsNote",
+                  "value": "Postman upload test",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const row = body.data ?? body;",
+                  "if (row?.id) pm.environment.set('digitalAssetId', row.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Patch asset access",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/assets/{{digitalAssetId}}/access",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"readAccess\": \"authenticated\",\n  \"downloadRequiresCard\": true,\n  \"expectedState\": \"ready\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Archive asset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/assets/{{digitalAssetId}}/archive",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedState\": \"ready\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Read digital asset (inline)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/digital-assets/{{digitalAssetId}}/read",
+            "description": ""
+          }
+        },
+        {
+          "name": "Download digital asset",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/digital-assets/{{digitalAssetId}}/download",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Library cards",
+      "description": "",
+      "item": [
+        {
+          "name": "My library cards",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/library-cards?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "me",
+                "library-cards"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List admin cards",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/library-cards?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "library-cards"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Issue library card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/library-cards",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"cardNumber\": \"CARD-POSTMAN-001\",\n  \"expiresAt\": \"2030-12-31T00:00:00.000Z\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const row = body.data ?? body;",
+                  "if (row?.id) pm.environment.set('libraryCardId', row.id);",
+                  "if (row?.cardNumber) pm.environment.set('cardNumber', row.cardNumber);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update card state",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/library-cards/{{libraryCardId}}/state",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"state\": \"active\",\n  \"expectedState\": \"active\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Circulation (loans)",
+      "description": "Reader: loans.create.own; Staff: loans.manage",
+      "item": [
+        {
+          "name": "Create loan reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/loans",
+            "description": "Dang nhap reader co thẻ. Dat cardNumber tu Issue library card.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"cardNumber\": \"{{cardNumber}}\",\n  \"password\": \"{{readerPassword}}\",\n  \"requestedDays\": 15\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const row = (body.data ?? body).data ?? body.data ?? body;",
+                  "if (row?.id) pm.environment.set('loanId', row.id);",
+                  "if (row?.version) pm.environment.set('loanVersion', row.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My loans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/loans?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "me",
+                "loans"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get loan by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/loans/{{loanId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Cancel reserved loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/loans/{{loanId}}/cancel",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"{{loanVersion}}\",\n  \"reason\": \"Postman cancel test\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Admin list loans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/loans?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "loans"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('loanId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Checkout loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/loans/{{loanId}}/checkout",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"{{loanVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Return loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/loans/{{loanId}}/return",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"{{loanVersion}}\",\n  \"conditionState\": \"serviceable\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark loan lost",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/loans/{{loanId}}/lost",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"{{loanVersion}}\",\n  \"reason\": \"Postman lost test\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Purchase requests",
+      "description": "",
+      "item": [
+        {
+          "name": "Submit purchase request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/purchase-requests",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sach de xuat\",\n  \"authorText\": \"Tac gia A\",\n  \"publicationYear\": 2023,\n  \"note\": \"Postman test\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const row = body.data ?? body;",
+                  "if (row?.id) pm.environment.set('purchaseRequestId', row.id);",
+                  "if (row?.version) pm.environment.set('purchaseVersion', row.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My purchase requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/purchase-requests?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "me",
+                "purchase-requests"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get purchase request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/purchase-requests/{{purchaseRequestId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin list purchase queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/purchase-requests?state=pending&page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "admin",
+                "purchase-requests"
+              ],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "pending"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const body = pm.response.json();",
+                  "  let rows = body.data;",
+                  "  if (rows && !Array.isArray(rows) && Array.isArray(rows.data)) {",
+                  "    rows = rows.data;",
+                  "  }",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('purchaseRequestId', rows[0].id);",
+                  "  }",
+                  "} catch (e) { /* ignore */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Review purchase (approve)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/purchase-requests/{{purchaseRequestId}}/review",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approved\",\n  \"version\": \"{{purchaseVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Review purchase (reject)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/admin/purchase-requests/{{purchaseRequestId}}/review",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"rejected\",\n  \"reason\": \"Khong phu hop ngan sach\",\n  \"version\": \"{{purchaseVersion}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Reports",
+      "description": "Can reports.read",
+      "item": [
+        {
+          "name": "Circulation report (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/circulation?from=2026-01-01&to=2026-12-31&format=json",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "reports",
+                "circulation"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-12-31"
+                },
+                {
+                  "key": "format",
+                  "value": "json"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Circulation report (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/circulation?from=2026-01-01&to=2026-12-31&format=csv",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "reports",
+                "circulation"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-12-31"
+                },
+                {
+                  "key": "format",
+                  "value": "csv"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Inventory snapshot (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/inventory?format=json",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "reports",
+                "inventory"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "json"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Inventory snapshot (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/inventory?format=csv",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "reports",
+                "inventory"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "csv"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Purchases report (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/purchases?from=2026-01-01&to=2026-12-31&format=json",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "reports",
+                "purchases"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-12-31"
+                },
+                {
+                  "key": "format",
+                  "value": "json"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Purchases report (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reports/purchases?from=2026-01-01&to=2026-12-31&format=csv",
+              "host": [
+                "{{baseUrl}}/api/v1"
+              ],
+              "path": [
+                "reports",
+                "purchases"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-12-31"
+                },
+                {
+                  "key": "format",
+                  "value": "csv"
+                }
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    }
+  ]
+}

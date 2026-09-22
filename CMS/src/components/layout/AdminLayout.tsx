@@ -35,6 +35,16 @@ export function AdminLayout(): React.JSX.Element {
                   Catalog
                 </NavLink>
               ) : null}
+              {can('loans.read.own') ? (
+                <NavLink to="/me/loans" className={navLinkClass}>
+                  My loans
+                </NavLink>
+              ) : null}
+              {can('loans.read.any') ? (
+                <NavLink to="/circulation" className={navLinkClass}>
+                  Circulation
+                </NavLink>
+              ) : null}
             </nav>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={() => void logout()}>

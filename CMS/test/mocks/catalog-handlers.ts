@@ -1,4 +1,5 @@
 import { delay, http, HttpResponse } from 'msw';
+import { getBook106AvailableCopies } from './circulation-handlers';
 
 const API_BASE = '/api/v1';
 
@@ -164,6 +165,24 @@ export const catalogHandlers = [
               rightsNote: 'Campus license only.',
             },
           ],
+        },
+      });
+    }
+    if (params.id === '106') {
+      return HttpResponse.json({
+        data: {
+          id: '106',
+          title: 'Borrowable Sample',
+          categoryId: '1',
+          categoryName: 'General',
+          isbn: null,
+          publicationYear: 2024,
+          authors: [{ id: '10', name: 'Author Alpha' }],
+          topics: [{ id: '20', name: 'Topic A' }],
+          publisherName: 'Publisher',
+          description: 'Book for circulation UI tests.',
+          availableCopies: getBook106AvailableCopies(),
+          digitalAssets: [],
         },
       });
     }

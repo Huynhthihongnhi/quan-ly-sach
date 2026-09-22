@@ -4,6 +4,21 @@ import { EntityManager, Repository } from 'typeorm';
 import { Loan, LoanState } from './entities/loan.entity';
 import { LoanEvent } from './entities/loan-event.entity';
 
+export interface LoanWithBookId {
+  loan: Loan;
+  bookId: string;
+}
+
+export interface LoanListFilters {
+  userId?: string;
+  copyId?: string;
+  state?: LoanState;
+  overdue?: boolean;
+  now: Date;
+  page: number;
+  pageSize: number;
+}
+
 export interface InsertLoanInput {
   userId: string;
   cardId: string;
@@ -24,8 +39,110 @@ export class LoansRepository {
     private readonly loanEvents: Repository<LoanEvent>,
   ) {}
 
+  findById(loanId: string): Promise<Loan | null> {
+    return this.loans.findOne({ where: { id: loanId } });
+  }
+
+  async findBookIdForCopyId(copyId: string): Promise<string | null> {
+    const rows: Array<{ bookId: string }> = await this.loans.query(
+      `SELECT book_id AS bookId FROM book_copies WHERE id = ? LIMIT 1`,
+      [copyId],
+    );
+    return rows[0]?.bookId ? String(rows[0].bookId) : null;
+  }
+
+  async listLoans(filters: LoanListFilters): Promise<{ items: LoanWithBookId[]; total: number }> {
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+
+    if (filters.userId) {
+      conditions.push('l.user_id = ?');
+      params.push(filters.userId);
+    }
+    if (filters.copyId) {
+      conditions.push('l.copy_id = ?');
+      params.push(filters.copyId);
+    }
+    if (filters.state) {
+      conditions.push('l.state = ?');
+      params.push(filters.state);
+    }
+    if (filters.overdue === true) {
+      conditions.push(`l.state = 'borrowed' AND l.due_at < ?`);
+      params.push(filters.now);
+    } else if (filters.overdue === false) {
+      conditions.push(`NOT (l.state = 'borrowed' AND l.due_at < ?)`);
+      params.push(filters.now);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const offset = (filters.page - 1) * filters.pageSize;
+
+    const countRows: Array<{ total: string }> = await this.loans.query(
+      `SELECT COUNT(*) AS total
+       FROM loans l
+       INNER JOIN book_copies c ON c.id = l.copy_id
+       ${whereClause}`,
+      params,
+    );
+    const total = Number(countRows[0]?.total ?? 0);
+
+    const rows: Array<Record<string, unknown>> = await this.loans.query(
+      `SELECT l.id, l.user_id AS userId, l.card_id AS cardId, l.copy_id AS copyId,
+              l.request_key AS requestKey, l.request_hash AS requestHash, l.state,
+              l.requested_days AS requestedDays, l.reserved_at AS reservedAt,
+              l.reservation_expires_at AS reservationExpiresAt, l.checked_out_at AS checkedOutAt,
+              l.due_at AS dueAt, l.closed_at AS closedAt, l.version,
+              c.book_id AS bookId
+       FROM loans l
+       INNER JOIN book_copies c ON c.id = l.copy_id
+       ${whereClause}
+       ORDER BY l.id DESC
+       LIMIT ? OFFSET ?`,
+      [...params, filters.pageSize, offset],
+    );
+
+    const items = rows.map((row) => ({
+      loan: this.loans.create({
+        id: String(row.id),
+        userId: String(row.userId),
+        cardId: String(row.cardId),
+        copyId: String(row.copyId),
+        requestKey: String(row.requestKey),
+        requestHash: row.requestHash as Buffer,
+        state: row.state as LoanState,
+        requestedDays: Number(row.requestedDays),
+        reservedAt: row.reservedAt as Date,
+        reservationExpiresAt: row.reservationExpiresAt as Date,
+        checkedOutAt: (row.checkedOutAt as Date | null) ?? null,
+        dueAt: (row.dueAt as Date | null) ?? null,
+        closedAt: (row.closedAt as Date | null) ?? null,
+        version: String(row.version),
+      }),
+      bookId: String(row.bookId),
+    }));
+
+    return { items, total };
+  }
+
+  listEventsForLoan(loanId: string): Promise<LoanEvent[]> {
+    return this.loanEvents.find({
+      where: { loanId },
+      order: { createdAt: 'ASC', id: 'ASC' },
+    });
+  }
+
   findByUserAndRequestKey(userId: string, requestKey: string): Promise<Loan | null> {
     return this.loans.findOne({ where: { userId, requestKey } });
+  }
+
+  findByIdForUpdate(manager: EntityManager, loanId: string): Promise<Loan | null> {
+    return manager
+      .getRepository(Loan)
+      .createQueryBuilder('loan')
+      .where('loan.id = :loanId', { loanId })
+      .setLock('pessimistic_write')
+      .getOne();
   }
 
   findByUserAndRequestKeyInTransaction(
@@ -109,11 +226,51 @@ export class LoansRepository {
     return loan;
   }
 
+  async transitionLoanWithVersion(
+    manager: EntityManager,
+    input: {
+      loanId: string;
+      expectedVersion: string;
+      toState: LoanState;
+      closedAt?: Date | null;
+      checkedOutAt?: Date | null;
+      dueAt?: Date | null;
+    },
+  ): Promise<Loan | null> {
+    const setValues: Partial<Loan> = { state: input.toState };
+    if (input.closedAt !== undefined) {
+      setValues.closedAt = input.closedAt;
+    }
+    if (input.checkedOutAt !== undefined) {
+      setValues.checkedOutAt = input.checkedOutAt;
+    }
+    if (input.dueAt !== undefined) {
+      setValues.dueAt = input.dueAt;
+    }
+
+    const result = await manager
+      .createQueryBuilder()
+      .update(Loan)
+      .set({
+        ...setValues,
+        version: () => 'version + 1',
+      })
+      .where('id = :loanId', { loanId: input.loanId })
+      .andWhere('version = :expectedVersion', { expectedVersion: input.expectedVersion })
+      .execute();
+
+    if ((result.affected ?? 0) === 0) {
+      return null;
+    }
+
+    return manager.getRepository(Loan).findOne({ where: { id: input.loanId } });
+  }
+
   async appendLoanEvent(
     manager: EntityManager,
     input: {
       loanId: string;
-      actorUserId: string;
+      actorUserId: string | null;
       fromState: LoanState | null;
       toState: LoanState;
       requestId: string;

@@ -22,4 +22,7 @@ export class LoanEvent {
 
   @Column({ name: 'request_id', type: 'varchar', length: 64 })
   requestId!: string;
+
+  @Column({ name: 'created_at', type: 'datetime', precision: 6 })
+  createdAt!: Date;
 }

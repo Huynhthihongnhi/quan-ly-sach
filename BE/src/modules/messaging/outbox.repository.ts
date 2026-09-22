@@ -121,6 +121,27 @@ export class OutboxRepository {
     return readAffectedRows(result) > 0;
   }
 
+  async cancelProcessing(
+    manager: EntityManager,
+    params: { id: string; workerId: string; now: Date; errorCode: string },
+  ): Promise<boolean> {
+    const result: unknown = await manager.query(
+      `UPDATE email_outbox
+       SET state = 'cancelled',
+           lease_owner = NULL,
+           leased_until = NULL,
+           encrypted_payload = NULL,
+           encryption_key_id = NULL,
+           last_error_code = ?
+       WHERE id = ?
+         AND state = 'processing'
+         AND lease_owner = ?
+         AND leased_until >= ?`,
+      [params.errorCode, params.id, params.workerId, params.now],
+    );
+    return readAffectedRows(result) > 0;
+  }
+
   async markFailed(
     manager: EntityManager,
     params: { id: string; workerId: string; now: Date; errorCode: string },
