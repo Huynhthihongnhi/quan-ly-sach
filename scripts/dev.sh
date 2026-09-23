@@ -4,14 +4,28 @@
 # Tuong thich bash 3.2 (macOS mac dinh): khong dung wait -n hay mang ket hop.
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)" || exit 1
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)" || exit 1
 : "${ROOT:?ROOT rong}"
 
 if [ "$#" -eq 0 ]; then
   echo "Dung: $0 <be|worker|cms|fe> [thanh phan khac...]" >&2
   exit 2
 fi
+
+# Kiem tra tat ca dich vu truoc khi bat Docker hay tien trinh con.
+for svc in "$@"; do
+  case "$svc" in
+    be|worker) dir=BE ;;
+    cms) dir=CMS ;;
+    fe) continue ;;
+    *) echo "[dev] Khong ro dich vu: $svc (chi nhan be|worker|cms|fe)" >&2; exit 2 ;;
+  esac
+  if [ -L "$ROOT/$dir" ] || [ ! -f "$ROOT/$dir/package.json" ]; then
+    echo "[dev] Can thu muc $ROOT/$dir voi package.json, khong dung symlink." >&2
+    exit 1
+  fi
+done
 
 # Neu can BE hoac worker thi bat ha tang (MySQL) truoc.
 need_db=0
@@ -25,21 +39,42 @@ if [ "$need_db" -eq 1 ]; then
 fi
 
 pids=""
+set -m
 
-# Tat ca tien trinh con nam cung process group -> kill 0 se tat het khi thoat.
+# Moi dich vu co process group rieng; chi dung cac group do script nay tao.
 cleanup() {
   trap - INT TERM EXIT
   printf '\n[dev] Dang dung cac dich vu...\n'
-  kill 0 2>/dev/null || true
+  # 1) TERM thang cho tien trinh dich vu (group leader = $pid sau exec) de no
+  #    chay trap dung tin cay; TERM ca nhom cung luc de bash mat tin hieu (race).
+  for pid in $pids; do
+    kill -TERM "$pid" 2>/dev/null || true
+  done
+  # 2) Cho tung dich vu ket thuc roi moi thoat.
+  for pid in $pids; do
+    wait "$pid" 2>/dev/null || true
+  done
+  # 3) Luoi an toan: don tien trinh con con sot lai trong nhom (neu dich vu
+  #    khong tu tat het). Chay sau buoc 2 nen khong anh huong trap o buoc 1.
+  for pid in $pids; do
+    kill -TERM -- "-$pid" 2>/dev/null || true
+  done
 }
-trap cleanup INT TERM EXIT
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # run <ten hien thi> <thu muc con> <lenh...>
 run() {
   local name="$1"; shift
   local dir="$1"; shift
-  ( cd "$ROOT/$dir" && exec "$@" ) 2>&1 \
-    | while IFS= read -r line; do printf '[%s] %s\n' "$name" "$line"; done &
+  # Dung exec + process substitution: tien trinh dich vu la truong nhom (group
+  # leader = $!), nen no nhan TERM truc tiep va van giu tien to log [ten].
+  (
+    set +m
+    cd "$ROOT/$dir" || exit 1
+    exec "$@" > >(while IFS= read -r line; do printf '[%s] %s\n' "$name" "$line"; done) 2>&1
+  ) &
   pids="$pids $!"
 }
 

@@ -1,17 +1,24 @@
-import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
+import react from '@vitejs/plugin-react-swc';
 import path from 'node:path';
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
+
+const port = Number(process.env.CMS_PORT ?? 8081);
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error('CMS_PORT must be an integer between 1 and 65535');
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  base: '/cms/',
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      src: path.resolve(__dirname, './src'),
     },
   },
   server: {
-    port: 8081,
+    port,
+    strictPort: true,
     host: true,
     // Cho phep cloudflared quick tunnel (https://<random>.trycloudflare.com) toi dev server.
     allowedHosts: ['.trycloudflare.com'],
@@ -21,11 +28,5 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
-  },
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./test/setup.ts'],
-    css: true,
-    globals: true,
   },
 });

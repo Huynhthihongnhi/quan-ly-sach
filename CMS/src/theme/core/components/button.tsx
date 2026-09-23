@@ -46,7 +46,7 @@ const MuiButtonBase: Components<Theme>['MuiButtonBase'] = {
 
 // ----------------------------------------------------------------------
 
-const softVariant: Record<string, ComponentsVariants<Theme>['MuiButton']> = {
+const softVariant: Record<string, NonNullable<ComponentsVariants<Theme>['MuiButton']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) =>
       !ownerState.disabled && ownerState.variant === 'soft' && ownerState.color === color,

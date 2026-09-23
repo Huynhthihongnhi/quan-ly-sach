@@ -4,6 +4,14 @@ Bo script giup chay moi truong dev local: BE (NestJS), CMS (Vite), FE (khi da kh
 va tunnel Cloudflare. Dieu phoi qua `Makefile` o thu muc goc. Chi dung cho local dev tren
 macOS voi Docker Desktop.
 
+CMS frontend chi nam trong `CMS/`, dung Minimal UI/MUI. Entry la `CMS/src/main.tsx`
+-> `CMS/src/App.tsx` -> `CMS/src/routes/sections/`. `CMS-old/` da ngung su dung va
+duoc dua vao thung rac; khong dung lai cho tinh nang moi. Xem [kien truc CMS](../CMS/docs/architecture.md).
+
+Mo `http://localhost:8081/cms/` sau `make cms` hoac `make dev`. Vite dung `strictPort`:
+cong bi chiem thi bao loi, khong chuyen sang cong khac. `CMS_PORT` duoc truyen dong bo
+tu Makefile toi Vite; khi doi cong, dung cung gia tri cho dev va tunnel.
+
 ## Lenh nhanh
 
 Chay tu thu muc goc repo:
@@ -31,9 +39,10 @@ Chay tu thu muc goc repo:
 
 - `ensure-docker.sh` - kiem tra Docker daemon, tu mo Docker Desktop tren macOS, cho san sang,
   roi chay `npm run docker:up` (MySQL + Mailpit). Goi lai nhieu lan an toan.
-- `dev.sh` - chay nhieu dich vu cung luc voi tien to log; Ctrl-C tat tat ca. Tuong thich bash 3.2.
+- `dev.sh` - chay nhieu dich vu cung luc voi tien to log; Ctrl-C chi tat process group do script tao. Kiem tra thu muc truoc khi bat dich vu. Tuong thich bash 3.2.
 - `tunnel.sh` - mo `cloudflared tunnel --url http://localhost:<PORT>` (URL dang
   `https://<random>.trycloudflare.com`).
+- `test-dev-runtime.py` - kiem tra routing dev/tunnel bang stub, khong bat Docker hay tunnel public: `python3 scripts/test-dev-runtime.py`.
 
 ## Luu y ve tunnel (quan trong)
 
@@ -43,12 +52,17 @@ tac ghi (POST/PUT/DELETE) se bi tra ve 403 vi guard `mutation-origin` (D03) chi 
 
 Muon ghi duoc qua tunnel:
 
-1. Chay `make tunnel-cms`, copy URL `https://<random>.trycloudflare.com` no in ra.
-2. Them URL do vao `ALLOWED_ORIGINS` trong `BE/.env`.
-3. Khoi dong lai BE.
+1. Chay `make dev` (hoac `make cms` neu BE da chay), roi `make tunnel-cms` o terminal khac. Script tu choi neu cong chua chay hoac listener khong chay tu `CMS/` trong repo nay.
+2. Copy URL `https://<random>.trycloudflare.com`, mo duong dan `/cms/` tren URL do.
+3. Them origin do (khong co `/cms/`) vao `ALLOWED_ORIGINS` trong `BE/.env`.
+4. Neu can link email qua tunnel, dat `APP_PUBLIC_ORIGIN=https://<random>.trycloudflare.com/cms`. Local dung `http://localhost:8081/cms`.
+5. Khoi dong lai BE (va worker neu dang chay).
 
 URL quick tunnel doi moi lan chay. Neu can URL co dinh, dung named tunnel cua Cloudflare thay
 cho quick tunnel.
+
+Vi du doi cong: `make dev CMS_PORT=8082`, sau do `make tunnel-cms CMS_PORT=8082`.
+Khong chay dong thoi `make cms` va `make dev` vi ca hai deu khoi dong CMS.
 
 ## Cong mac dinh
 

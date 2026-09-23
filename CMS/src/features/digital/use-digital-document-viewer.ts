@@ -40,7 +40,10 @@ export function useDigitalDocumentViewer(assetId: string | undefined): DigitalDo
           return;
         }
         const message = describeDigitalReadError(caught);
-        setError(message || 'Unable to load the document.');
+        if (!message) {
+          return;
+        }
+        setError(message);
         setBlobUrl(null);
       })
       .finally(() => {

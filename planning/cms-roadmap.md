@@ -2,6 +2,8 @@
 
 Ngày lập: 2026-09-18. Phương pháp: ClearThought `implementation_plan` và Sequential Thinking implicit. Nguồn: [D12](DECISIONS.md#d12), [kiến trúc CMS](../CMS/docs/architecture.md), [API BE](../BE/docs/04-api-contract.md), source controller/DTO/service trong `BE/src/modules`.
 
+Cập nhật nguồn mã 2026-09-23: chỉ phát triển trong `CMS/`; entry Minimal UI ở `src/main.tsx` và `src/App.tsx`. `CMS-old/` đã được đưa vào thùng rác. Các module lịch sử còn trong `CMS/src/features` không được entry này nạp; chuyển nghiệp vụ theo từng bước bên dưới, không đổi entry về cây cũ.
+
 Phạm vi yêu cầu lần này: đồng bộ tài liệu/backbone, kiểm tra dependency, tạo drawer dùng chung và nền Query/Zustand/ExcelJS. Việc chuyển toàn bộ nghiệp vụ sang CMS mới được lập kế hoạch theo các bước dưới. Chỉ [PROGRESS.md](PROGRESS.md) lưu trạng thái; bảng này không phải bằng chứng chức năng đã chạy.
 
 ## Thứ tự triển khai
@@ -59,3 +61,4 @@ Không suy ra mọi màn đều có DELETE. Users/books chủ yếu đổi trạ
 - Reader app chưa có nơi triển khai độc lập. CMS-11 quyết định vị trí trước port, không tự dựng hai bản cùng chức năng.
 - S7-02 vẫn chờ host Ubuntu 24.04 thật; S7-03 còn chờ backup/restore, retention và RPO/RTO. CMS roadmap không đóng thay các gate đó.
 - Cần xác minh giấy phép template Minimal UI đang sử dụng trước phát hành. Data Grid Community không yêu cầu mua Pro/Premium cho các tính năng đã chọn.
+- Lỗ hổng đã biết (hoãn theo quyết định chủ dự án 2026-09-23): 8 test tính năng độc giả đang đỏ, nên `npm --prefix CMS run validate` chưa xanh. Các file: `test/features/catalog/catalog-acceptance.test.tsx` (TST-S3-06), `test/features/catalog/public-catalog.test.tsx` (TST-S3-04), `test/features/digital/document-viewer.test.tsx` (TST-S4-04). Lỗi chính: không tìm thấy text `Alpha Published` và testid `document-viewer-frame`. Các test này thuộc UI độc giả (`FE/` chưa scaffold, xem CMS-11), không phải màn quản trị Minimal UI. `lint` và `typecheck` của CMS đã xanh. Xử lý cùng bước chuyển reader sang `FE/`; không lấy các test này làm bằng chứng cho màn quản trị.

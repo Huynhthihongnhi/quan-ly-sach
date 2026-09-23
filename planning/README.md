@@ -4,6 +4,8 @@ Bộ kế hoạch này chuyển [PRD](../.vibekit/docs/PRD.md) thành 8 sprint, 
 
 ## Bắt đầu ở đâu
 
+Frontend quản trị chỉ phát triển trong `CMS/`, theo [D12](DECISIONS.md#d12), [kiến trúc CMS](../CMS/docs/architecture.md) và [cms-roadmap.md](cms-roadmap.md). `CMS-old/` đã ngừng sử dụng và được đưa vào thùng rác. Các evidence sprint cũ là lịch sử, không chứng minh màn Minimal UI hiện tại đã hoàn thành. Hướng dẫn dev/tunnel: [scripts/README.md](../scripts/README.md).
+
 1. Mở [PROGRESS.md](PROGRESS.md), nguồn duy nhất lưu ưu tiên, trạng thái, phụ thuộc, owner và evidence.
 2. Task bắt đầu là **S0-01**, chốt các giả định trong [DECISIONS.md](DECISIONS.md).
 3. Đọc task trong tài liệu sprint, [kiến trúc BE](../BE/docs/02-architecture.md), [API BE](../BE/docs/04-api-contract.md), [ánh xạ schema](../BE/docs/03-data-model.md) và [SQL gốc](database/schema.sql) trước khi triển khai.

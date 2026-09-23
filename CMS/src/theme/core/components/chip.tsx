@@ -52,7 +52,7 @@ function styleColors(ownerState: ChipProps, styles: (val: PaletteColor) => CSSOb
   return outputStyle;
 }
 
-const softVariant: Record<string, ComponentsVariants<Theme>['MuiChip']> = {
+const softVariant: Record<string, NonNullable<ComponentsVariants<Theme>['MuiChip']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) =>
       !ownerState.disabled && ownerState.variant === 'soft' && ownerState.color === color,

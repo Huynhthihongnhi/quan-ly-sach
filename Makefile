@@ -5,6 +5,7 @@
 SHELL := /bin/bash
 ROOT := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 CMS_PORT := 8081
+export CMS_PORT
 FE_PORT ?= 5173
 
 .DEFAULT_GOAL := help

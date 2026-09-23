@@ -56,7 +56,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       signal: options.signal,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw error;
+    }
     throw new ApiClientError(0, 'NETWORK_ERROR', 'Network request failed.');
   }
 

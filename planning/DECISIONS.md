@@ -1,5 +1,15 @@
 # Quyết định và giả định cần quản lý
 
+<a id="d12"></a>
+
+## D12: Nguồn frontend quản trị
+
+- Xác nhận 2026-09-23 bởi chủ dự án: dùng `CMS/`, khôi phục Minimal UI/MUI làm entry đang chạy, cho phép sửa dependency và lockfile; đưa `CMS-old/` vào thùng rác bằng `trash`.
+- Entry: `CMS/src/main.tsx` -> `CMS/src/App.tsx` -> `CMS/src/routes/sections/`. Tái sử dụng auth cookie/CSRF, theme, query, drawer và snackbar đã có.
+- Dev/tunnel mặc định cổng 8081, URL `/cms/`; Vite proxy `/api` tới BE cổng 3000. Tunnel CMS kiểm tra listener chạy từ đúng thư mục.
+- Tính năng mới theo [kiến trúc CMS](../CMS/docs/architecture.md) và [lộ trình](cms-roadmap.md). Mã/test lịch sử còn trong CMS không phải bằng chứng tính năng MUI đã hoàn thành. Không khôi phục `CMS-old/` làm cây phát triển.
+- Bằng chứng khôi phục: [CMS-runtime](evidence/CMS-runtime.md).
+
 Các mục D01-D05 đã được chốt tại S0-01 ngày 2026-09-11. D06-D10 vẫn là đề xuất có owner và hạn xử lý. Hướng dùng ORM đã được chủ dự án đồng ý tại D11. Khi chốt thêm quyết định, thêm ngày, người xác nhận, lựa chọn và bằng chứng ở chính mục đó. Nếu một mục tới hạn chưa chốt, task liên quan chuyển locked với mã Dxx ở PROGRESS.
 
 | Mã | Trạng thái | Cần chốt | Đề xuất để lập plan | Hạn trước task | Người quyết định |

@@ -42,7 +42,7 @@ Init chỉ thiết lập tài liệu và quy tắc dự án. Cổng thanh toán 
 
 ## 6. Ràng buộc và giả định
 
-- Frontend: React, TypeScript, Tailwind CSS, shadcn/ui cho giao diện độc giả và CMS.
+- Frontend quản trị: `CMS/`, React, TypeScript, Minimal UI/MUI theo [D12](../../planning/DECISIONS.md#d12). `CMS-old/` đã ngừng sử dụng; tính năng mới chỉ phát triển trong `CMS/`. Giao diện độc giả `FE/` chưa scaffold; Tailwind/shadcn là đề xuất ban đầu cho phần đó.
 - Backend: người dùng ghi `netjs`; tạm hiểu là NestJS. Xác nhận trước khi tạo mã backend. Dùng RESTful API và TDD.
 - Database: MySQL. Đề xuất migrations có số phiên bản, cặp `<version>_<name>.up.sql` / `.down.sql`, xem trước, chọn một phiên bản và lưu lịch sử đã chạy.
 - Mẫu tại `/Users/nhine/Downloads/migrations` là PostgreSQL và không theo dõi lịch sử migration. Cần chuyển cú pháp và thiết kế cơ chế chạy phù hợp MySQL; không sao chép bảng nghiệp vụ game. Thư mục mẫu ngoài dự án chỉ dùng để tham khảo, không phải phụ thuộc runtime.
@@ -53,7 +53,7 @@ Init chỉ thiết lập tài liệu và quy tắc dự án. Cổng thanh toán 
 
 ## 7. Hiện trạng
 
-Greenfield: chưa có mã ứng dụng. Thư mục đang có bộ công cụ agent và đề bài gốc. Chưa khởi tạo Git; validator chỉ kiểm tra bộ kit, không chứng minh tính năng ứng dụng đã hoạt động.
+Tại thời điểm init, repo chưa có mã ứng dụng. Cập nhật 2026-09-23: backend ở `BE/`, frontend quản trị ở `CMS/`. Dev và tunnel CMS dùng cổng 8081, đường dẫn `/cms/`. Xem [hướng dẫn chạy](../../scripts/README.md). Validator kit không chứng minh tính năng ứng dụng; chạy thêm validation BE và CMS. Các màn dashboard mẫu chưa phải tính năng nghiệp vụ đã hoàn thành.
 
 ## 8. Điểm cần chốt trước phần triển khai liên quan
 

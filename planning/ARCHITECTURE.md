@@ -1,5 +1,7 @@
 # Kiến trúc đề xuất
 
+Cập nhật layout runtime 2026-09-23: backend ở `BE/`, frontend quản trị duy nhất ở `CMS/` với Minimal UI/MUI; `FE/` chưa scaffold. Theo [D12](DECISIONS.md#d12) và [kiến trúc CMS](../CMS/docs/architecture.md). Layout `apps/web` bên dưới là đề xuất lịch sử, không tạo thêm cây frontend quản trị theo layout đó.
+
 Đây là thiết kế dự kiến theo D01-D10, chưa phải cấu trúc đã triển khai. Một backend chia module đủ đáp ứng giai đoạn đầu và giúp transaction nghiệp vụ dễ kiểm thử; chưa có nhu cầu tách microservice.
 
 ## Thành phần và trách nhiệm

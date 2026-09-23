@@ -28,7 +28,7 @@ const FILLED_VARIANT = ['circular', 'extended'];
 const OUTLINED_VARIANT = ['outlined', 'outlinedExtended'];
 const SOFT_VARIANT = ['soft', 'softExtended'];
 
-const filledVariant: Record<string, ComponentsVariants<Theme>['MuiFab']> = {
+const filledVariant: Record<string, NonNullable<ComponentsVariants<Theme>['MuiFab']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) =>
       !ownerState.disabled &&
@@ -68,7 +68,7 @@ const filledVariant: Record<string, ComponentsVariants<Theme>['MuiFab']> = {
   ],
 };
 
-const outlinedVariant: Record<string, ComponentsVariants<Theme>['MuiFab']> = {
+const outlinedVariant: Record<string, NonNullable<ComponentsVariants<Theme>['MuiFab']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) =>
       !ownerState.disabled &&
@@ -103,7 +103,7 @@ const outlinedVariant: Record<string, ComponentsVariants<Theme>['MuiFab']> = {
   ],
 };
 
-const softVariant: Record<string, ComponentsVariants<Theme>['MuiFab']> = {
+const softVariant: Record<string, NonNullable<ComponentsVariants<Theme>['MuiFab']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) =>
       !ownerState.disabled &&

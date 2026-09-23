@@ -37,7 +37,7 @@ function styleColors(ownerState: ButtonGroupProps, styles: (val: PaletteColor) =
 
 const buttonClasses = `& .${buttonGroupClasses.firstButton}, & .${buttonGroupClasses.middleButton}`;
 
-const softVariant: Record<string, ComponentsVariants<Theme>['MuiButtonGroup']> = {
+const softVariant: Record<string, NonNullable<ComponentsVariants<Theme>['MuiButtonGroup']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) =>
       !ownerState.disabled && ownerState.variant === 'soft' && ownerState.color === color,
