@@ -1,5 +1,7 @@
 # Phiên bản dependency CMS
 
+Cập nhật runtime 2026-09-23: đã khôi phục dependency MUI/Minimal UI và entry trong `CMS/`. `package.json` và `package-lock.json` hiện tại là nguồn phiên bản cài đặt. Bảng dưới là ảnh chụp lịch sử ngày 2026-09-18, không phải kết quả audit của lần khôi phục. `CMS-old/` đã được đưa vào thùng rác; không dùng làm nguồn dependency hay bằng chứng cho CMS hiện tại.
+
 Ngày đối chiếu: 2026-09-18, sau khi áp dụng [đề xuất cập nhật](dependency-update-proposal.md) đã được duyệt. Môi trường: Node 26.8.2, npm 11.19.1 (`packageManager` khai báo `npm@11.19.1`). Nguồn: `npm outdated --json`, `npm audit --json`, `npm ls <gói>`, đọc `node_modules/<gói>/package.json`. Đây là ảnh chụp một thời điểm; chạy lại các lệnh trên trước khi nâng cấp.
 
 ## Thư viện chính đã cài
@@ -28,7 +30,7 @@ Ngày đối chiếu: 2026-09-18, sau khi áp dụng [đề xuất cập nhật]
 
 ## Kết quả audit
 
-`npm audit --json` sau cài đặt: 18 mục, gồm 0 critical, 9 high, 7 moderate, 2 low. Trước cài đặt (bộ gói template gốc) là 20 mục với 1 critical. Kết quả "CMS audit 0 findings" trong `planning/evidence/S7-01.md` thuộc CMS cũ (`CMS-old/`), một cây dependency khác, không so sánh trực tiếp.
+`npm audit --json` sau cài đặt ngày 2026-09-18: 18 mục, gồm 0 critical, 9 high, 7 moderate, 2 low. Trước cài đặt (bộ gói template gốc) là 20 mục với 1 critical. Kết quả "CMS audit 0 findings" trong `planning/evidence/S7-01.md` thuộc giao diện lịch sử, một cây dependency khác, không so sánh trực tiếp.
 
 Nhóm 1: có bản vá nằm trong range, chỉ đổi lockfile, không đổi major. Gồm brace-expansion, flatted, js-yaml, lodash, minimatch, nanoid, picomatch, postcss, rollup (high); @humanfs/node, ajv, yaml (moderate); @eslint/plugin-kit, eslint (low). Phần lớn là dependency gián tiếp của tooling lint/build/test (eslint, typescript-eslint, vite, rollup, postcss). Hai ngoại lệ có đường đi vào runtime: `lodash@4.17.21` qua `simplebar-react` -> `simplebar-core` (layout của template; các advisory liên quan `_.template`, `_.unset`, `_.omit` với dữ liệu không tin cậy, CMS không gọi các hàm này) và `minimatch` qua `exceljs` -> `archiver` -> `glob` (đường Node, không chạy trong bundle trình duyệt). Lệnh dự kiến: `npm audit fix` không có `--force`, kèm `npm update` trong range, rồi chạy lại `npm run validate`. Phải duyệt trước vì `package-lock.json` là protected path.
 

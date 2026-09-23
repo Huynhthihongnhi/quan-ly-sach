@@ -90,7 +90,7 @@ export function FontSizeOptions({
       value={value}
       min={options[0]}
       max={options[1]}
-      onChange={(event: Event, newOption: number | number[]) => onChangeOption(newOption as number)}
+      onChange={(_event: Event, newOption: number | number[]) => onChangeOption(newOption as number)}
       sx={[
         (theme) => ({
           [`& .${sliderClasses.rail}`]: {

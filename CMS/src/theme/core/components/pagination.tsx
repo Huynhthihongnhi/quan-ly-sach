@@ -26,7 +26,7 @@ export type PaginationExtendColor = {
 
 const COLORS = ['primary', 'secondary', 'info', 'success', 'warning', 'error'] as const;
 
-const softVariant: Record<string, ComponentsVariants<Theme>['MuiPagination']> = {
+const softVariant: Record<string, NonNullable<ComponentsVariants<Theme>['MuiPagination']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) =>
       !ownerState.disabled && ownerState.variant === 'soft' && ownerState.color === color,

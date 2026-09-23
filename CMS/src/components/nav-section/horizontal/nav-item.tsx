@@ -203,7 +203,7 @@ const ItemCaptionIcon = styled(Iconify, { shouldForwardProp })<StyledState>(({ t
 /**
  * @slot info
  */
-const ItemInfo = styled('span', { shouldForwardProp })<StyledState>(({ theme }) => ({
+const ItemInfo = styled('span', { shouldForwardProp })<StyledState>(() => ({
   ...navItemStyles.info,
 }));
 

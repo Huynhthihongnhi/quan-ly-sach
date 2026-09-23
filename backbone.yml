@@ -13,7 +13,7 @@ project:
   description: "Thư viện trực tuyến trong mạng nội bộ trường học, có tra cứu cho khách và CMS cho thủ thư."
   type: single-repo
   primary_language: ts
-  package_manager: unknown
+  package_manager: npm
   mode: greenfield
   prd: .vibekit/docs/PRD.md
   context: .vibekit/docs/CONTEXT.md
@@ -21,9 +21,10 @@ project:
 paths:
   root: .
   apps:
-    - .
-  source: []
-  tests: []
+    - BE
+    - CMS
+  source: [BE/src, CMS/src]
+  tests: [BE/test, CMS/test]
   docs: [temp.md, .vibekit/docs/]
   generated: [node_modules/, dist/, build/, coverage/]
 
@@ -56,7 +57,8 @@ conventions:
     - "Default coding level: 1 (Junior) - apply this explanation depth every session; change with /coding-level N."
     - "Deletion safety: use trash instead of rm; permanent deletes require explicit approval of the exact paths."
     - "Project scope and delivery order: follow project.prd and project.context; preserve temp.md as the original brief."
-    - "Planned stack: React, TypeScript, Tailwind CSS and shadcn/ui for reader UI and CMS; MySQL for data. Backend NestJS is a provisional interpretation of netjs and needs confirmation before scaffolding."
+    - "CMS source of truth: CMS/ with Minimal UI, MUI 7, React and TypeScript. Entry is CMS/src/main.tsx -> CMS/src/App.tsx -> CMS/src/routes/sections/. CMS-old/ is retired; use Git only for historical reference. New CMS features follow CMS/docs/architecture.md and planning/cms-roadmap.md."
+    - "Runtime stack: NestJS in BE/, MySQL for data, npm per app. Reader FE/ remains unscaffolded. CMS dev and tunnel use port 8081 and /cms/; see scripts/README.md."
     - "Backend delivery: use RESTful APIs and TDD (write a failing behavior test, implement it, then refactor); verify tools, versions and commands when scaffolding."
     - "Guest access: allow book lists, search and related filters without registration, login or a library card; enforce privileged permissions on the backend."
     - "Migration proposal: numbered paired SQL up/down files, preview and selected-version support, adapted to MySQL; add applied-version history and follow the existing protected-path policy."
@@ -69,7 +71,7 @@ commands:
   lint: cd BE && npm run lint
   typecheck: cd BE && npm run typecheck
   build: cd BE && npm run build
-  validate: node .vibekit/scripts/validate-kit.mjs . && cd BE && npm run validate
+  validate: node .vibekit/scripts/validate-kit.mjs . && npm --prefix BE run validate && npm --prefix CMS run validate
   verification:
     unit: cd BE && npm run test:unit
     acceptance: null

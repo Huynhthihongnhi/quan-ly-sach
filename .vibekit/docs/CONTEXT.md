@@ -27,7 +27,10 @@
 - Đề bài gốc: [temp.md](../../temp.md).
 - Phạm vi và thứ tự ưu tiên: [PRD.md](PRD.md).
 - Quy tắc, đường dẫn và lệnh kiểm tra: [backbone.yml](../../backbone.yml).
-- Mã ứng dụng và kiểm thử: chưa tạo. Frontend dự kiến dùng React và TypeScript; backend NestJS chờ xác nhận; database dùng MySQL.
+- Backend và kiểm thử: `BE/`, NestJS và MySQL. Frontend quản trị và kiểm thử: `CMS/`, Minimal UI/MUI, React và TypeScript. `FE/` cho độc giả chưa scaffold.
+- `CMS/` là nguồn frontend quản trị duy nhất. `CMS-old/` đã ngừng sử dụng và được đưa vào thùng rác. Không lấy mã cũ hoặc kết quả test lịch sử làm bằng chứng màn MUI đã nối nghiệp vụ.
+- Entry CMS: `src/main.tsx` -> `src/App.tsx` -> `src/routes/sections/`. Phát triển tiếp theo [kiến trúc CMS](../../CMS/docs/architecture.md) và [lộ trình](../../planning/cms-roadmap.md).
+- Khởi động: `make dev`, hoặc `make cms` cho frontend; URL `http://localhost:8081/cms/`. Tunnel: `make tunnel-cms`, xem [runbook](../../scripts/README.md).
 - Cấu hình agent: `AGENTS.md` dùng chung; `CLAUDE.md` và các thư mục agent đã có.
 - Kiểm tra kit: `node .vibekit/scripts/validate-kit.mjs .`. Lệnh này không kiểm thử ứng dụng.
 
@@ -51,4 +54,4 @@
 - Mẫu migration dùng PostgreSQL và không lưu lịch sử đã chạy; MySQL cần cú pháp và cơ chế theo dõi phù hợp.
 - Down migration có thể mất dữ liệu; file down không thay thế bản sao lưu.
 - Script bên trong bộ kit không phải mã backend của ứng dụng.
-- Chưa có mã ứng dụng, Git hay bằng chứng kiểm thử tính năng tại thời điểm init.
+- Thông tin chưa có mã/Git trong tài liệu init chỉ mô tả thời điểm khởi tạo. Xác minh hiện trạng bằng source và validation hiện tại.

@@ -207,7 +207,7 @@ const ItemTitle = styled('span', { shouldForwardProp })<StyledState>(({ active, 
 /**
  * @slot caption icon
  */
-const ItemCaptionIcon = styled(Iconify, { shouldForwardProp })<StyledState>(({ theme }) => ({
+const ItemCaptionIcon = styled(Iconify, { shouldForwardProp })<StyledState>(() => ({
   ...navItemStyles.captionIcon,
   color: 'var(--nav-item-caption-color)',
   variants: [{ props: { variant: 'rootItem' }, style: { top: 11, left: 6, position: 'absolute' } }],
@@ -216,7 +216,7 @@ const ItemCaptionIcon = styled(Iconify, { shouldForwardProp })<StyledState>(({ t
 /**
  * @slot info
  */
-const ItemInfo = styled('span', { shouldForwardProp })<StyledState>(({ theme }) => ({
+const ItemInfo = styled('span', { shouldForwardProp })<StyledState>(() => ({
   ...navItemStyles.info,
 }));
 

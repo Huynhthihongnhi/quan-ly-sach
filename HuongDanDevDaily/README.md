@@ -7,7 +7,8 @@ chạy từ thư mục gốc repo bằng `make`.
 Các phần trong dự án:
 
 - BE: backend API NestJS và worker gửi mail, dùng MySQL. Chạy ở cổng 3000.
-- CMS: giao diện thủ thư (React + Vite). Chạy ở cổng 8081.
+- CMS: giao diện thủ thư (Minimal UI/MUI + React + Vite) tại `CMS/`. Chạy ở `http://localhost:8081/cms/`.
+- `CMS-old/` đã ngừng sử dụng và được đưa vào thùng rác. Tính năng mới chỉ phát triển trong `CMS/`, theo [kiến trúc CMS](../CMS/docs/architecture.md). Entry là `src/main.tsx` -> `src/App.tsx` -> `src/routes/sections/`.
 - FE: giao diện độc giả. Chưa triển khai (theo kế hoạch CMS-11), thư mục `FE/` còn trống.
 - Hạ tầng: MySQL 3306 và Mailpit 8025 chạy trong Docker.
 
@@ -58,7 +59,7 @@ make dev
 Lệnh này tự bật Docker (MySQL + Mailpit), rồi chạy BE và CMS cùng lúc, gộp log chung.
 Nhấn `Ctrl-C` để tắt cả hai. Sau khi chạy, mở trình duyệt:
 
-- CMS: http://localhost:8081  (sẽ tự chuyển tới trang đăng nhập)
+- CMS: http://localhost:8081/cms/ (sẽ tự chuyển tới trang đăng nhập)
 - Mailpit (xem mail thử): http://127.0.0.1:8025
 
 Muốn chạy kèm worker (cần cho gửi mail kích hoạt và quên mật khẩu):
@@ -100,6 +101,10 @@ make dev
 # Terminal 2: mở tunnel tới CMS
 make tunnel-cms
 ```
+
+Mở `/cms/` trên URL tunnel. Script kiểm tra listener thuộc `CMS/` trong repo này và dừng nếu cổng chưa có dịch vụ hoặc đang chạy ứng dụng khác. Vite dừng khi cổng bị chiếm, không tự tăng cổng. Nếu đổi cổng, truyền cùng `CMS_PORT` cho cả dev và tunnel.
+
+Link email dùng `APP_PUBLIC_ORIGIN=http://localhost:8081/cms` khi chạy local, hoặc `https://<ngau-nhien>.trycloudflare.com/cms` qua tunnel. `ALLOWED_ORIGINS` chỉ chứa origin, không có `/cms`. Khởi động lại BE và worker sau khi sửa cấu hình liên quan.
 
 Terminal 2 sẽ in ra URL. Mở đúng URL đó. Các điểm quan trọng:
 

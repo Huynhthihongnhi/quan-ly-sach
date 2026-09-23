@@ -1,6 +1,6 @@
 # Kiến trúc FE CMS
 
-Cập nhật 2026-09-18 theo [D12](../../planning/DECISIONS.md#d12). `CMS/` là giao diện quản trị đang phát triển từ Minimal UI starter 7. `CMS-old/` giữ mã giao diện trước lần thay template. `FE/` cho độc giả chưa được scaffold riêng. Không lấy trạng thái hoàn thành của CMS cũ để kết luận CMS mới đã nối nghiệp vụ.
+Cập nhật 2026-09-23 theo [D12](../../planning/DECISIONS.md#d12). `CMS/` là nguồn frontend quản trị duy nhất, dùng Minimal UI starter 7. `CMS-old/` đã ngừng sử dụng và được đưa vào thùng rác; tra cứu lịch sử qua Git, không khôi phục thư mục này làm nguồn phát triển. `FE/` cho độc giả chưa được scaffold riêng. Không lấy kết quả kiểm thử giao diện lịch sử để kết luận màn MUI đã nối nghiệp vụ.
 
 ## Stack và trách nhiệm
 
@@ -9,8 +9,8 @@ Cập nhật 2026-09-18 theo [D12](../../planning/DECISIONS.md#d12). `CMS/` là 
 | React 19, TypeScript, Vite 6 | SPA và build | `package.json`, `vite.config.ts` |
 | MUI 7, Emotion, Minimal UI | Layout, theme, input, drawer | `src/theme`, `src/layouts`, `src/components` |
 | MUI X Data Grid Community 7 | Bảng quản trị, phân trang, thao tác trên dòng | Theme tại `src/theme/core/components/mui-x-data-grid.tsx` |
-| Axios 1 | HTTP transport | `src/lib/axios.ts`, cần chuyển adapter demo sang BE |
-| TanStack Query 5 | Dữ liệu API, cache, loading/error, mutation và invalidation | `src/lib/query-provider.tsx` đã được gắn trong `src/app.tsx` |
+| Axios 1 | HTTP transport, session cookie và CSRF | `src/lib/axios.ts`, API BE cùng origin |
+| TanStack Query 5 | Dữ liệu API, cache, loading/error, mutation và invalidation | `src/lib/query-provider.tsx` được gắn trong `src/App.tsx` |
 | Zustand 5 | Trạng thái giao diện: mode drawer, ID đang chọn | `src/components/form-drawer/create-drawer-store.ts` |
 | React Hook Form 7, Zod 3 | Giá trị biểu mẫu, validation, lỗi trường | `src/components/hook-form` và form theo nghiệp vụ |
 | ExcelJS 4 | Tạo file `.xlsx` từ cột/dòng được cho phép | `src/utils/export-excel.ts` |
@@ -31,12 +31,13 @@ Không persist password, CSRF, session, dữ liệu biểu mẫu hoặc PII vào
 
 ```text
 CMS/src/
-  app.tsx                         # QueryProvider, auth và theme providers
+  main.tsx                        # Entry, global.css của Minimal UI
+  App.tsx                         # Router, QueryProvider, auth, settings, theme, snackbar
   pages/                          # Route entry, mỏng
   routes/paths.ts                 # Đường dẫn UI
   routes/sections/                # Route tree và guards
   sections/<domain>/              # View, form, columns theo nghiệp vụ (sẽ bổ sung)
-  lib/axios.ts                    # HTTP client hiện còn theo demo
+  lib/axios.ts                    # HTTP client BE, cookie và CSRF
   lib/query-provider.tsx          # Cấu hình TanStack Query
   components/form-drawer/         # Drawer và factory Zustand đã tạo
   components/snackbar/            # Toast dùng chung (store Zustand + MUI Alert)
@@ -46,11 +47,11 @@ CMS/src/
 CMS/test/                         # Test CMS mới
 ```
 
-API/query hooks theo từng domain có thể đặt cùng `sections/<domain>` khi làm lát cắt đầu tiên; chỉ tách `src/api` dùng chung khi thật sự được nhiều view dùng. Tái sử dụng `routes/paths.ts`, `CONFIG`, `themeConfig`, `Iconify` và theme hiện có. Không đưa Tailwind/shadcn hoặc TanStack Table vào CMS mới. Không import source runtime từ `CMS-old/`.
+API/query hooks theo từng domain có thể đặt cùng `sections/<domain>` khi làm lát cắt đầu tiên; chỉ tách `src/api` dùng chung khi thật sự được nhiều view dùng. Tái sử dụng `routes/paths.ts`, `CONFIG`, `themeConfig`, `Iconify` và theme hiện có. Không thêm Tailwind/shadcn hoặc TanStack Table vào cây MUI. Các module `src/features`, `src/lib/api`, `src/lib/auth`, `src/routes/AppRoutes.tsx` và UI Radix còn lại là mã lịch sử, không nằm trong entry đang chạy.
 
 ## Khoảng cách tới backend hiện tại
 
-`src/auth/context/jwt` đang là demo JWT, đọc sessionStorage; provider còn fallback role `admin`. `src/lib/axios.ts` có endpoint demo `/api/auth/sign-in`, `/api/auth/me`; interceptor hiện làm mất `AxiosError.response.status`. Đây chưa phải cơ chế xác thực được chấp nhận cho dự án. Chuyển toàn bộ cùng một bước CMS-02, không bật màn quản trị chỉ bằng cách đặt `auth.skip`.
+`src/auth/context/jwt` giữ tên template nhưng đã gọi session BE, giữ CSRF trong bộ nhớ và xóa query cache khi nhận 401. `src/lib/axios.ts` dùng `/api/v1`, giữ lỗi chuẩn hóa có `status`, `code`, `fields`. Không bật màn quản trị bằng `auth.skip`. Dashboard hiện vẫn có trang mẫu; việc khôi phục entry không đồng nghĩa đã chuyển các màn nghiệp vụ sang MUI.
 
 Backend đã chọn [D03](../../planning/DECISIONS.md#d03): cookie HttpOnly do server quản lý, CSRF trong bộ nhớ, cùng origin. Runtime nguồn chuẩn: [AuthController](../../BE/src/modules/auth/auth.controller.ts), [API contract](../../BE/docs/04-api-contract.md), [fixtures](../../BE/test/fixtures/contract/).
 
@@ -68,9 +69,9 @@ Backend đã chọn [D03](../../planning/DECISIONS.md#d03): cookie HttpOnly do s
 | 403 | Hiển thị thiếu quyền; không coi mọi 403 là hết phiên |
 | 409 / 422 / 429 | Giữ form và xử lý xung đột / lỗi trường / Retry-After |
 
-Sau chuyển đổi, interceptor giữ nguyên AxiosError hoặc chuyển sang lỗi có `status`, `code`, `fields`, `requestId`; không log body chứa thông tin riêng. Truyền `signal` từ query function vào Axios để hủy yêu cầu cũ. Không tự retry mutation thiếu idempotency. `QueryProvider` hiện chỉ là nền, quy tắc không retry 4xx chỉ có hiệu lực nếu adapter bảo toàn status.
+Khi nối thêm API, giữ status trong lỗi chuẩn hóa và không log body chứa thông tin riêng. Truyền `signal` từ query function vào Axios để hủy yêu cầu cũ. Không tự retry mutation thiếu idempotency. `QueryProvider` hiện chỉ là nền; cần đối chiếu quy tắc retry với lỗi chuẩn hóa trước khi nối query nghiệp vụ.
 
-Dev hiện chạy cổng **8081**, base `/`, chưa có proxy API. CMS-02 phải cập nhật Vite base, router basename, proxy, đường dẫn navigation và link email đồng bộ trước khi dùng `/cms/` theo production. Cấu hình reverse proxy BE hiện chưa phục vụ CMS build. Việc có dependency không đồng nghĩa đã hoàn thành các mục này.
+Dev chạy cổng **8081**, Vite base và router basename cùng là `/cms/`; proxy `/api` tới `http://127.0.0.1:3000`. `strictPort` ngăn tự đổi cổng. `make cms`, `make dev`, `make dev-all` đều chạy từ `CMS/`; `make tunnel-cms` kiểm tra thư mục của listener trước khi mở tunnel. Link email dùng `APP_PUBLIC_ORIGIN=http://localhost:8081/cms`; origin được phép ghi không chứa path. Cấu hình reverse proxy BE hiện chưa phục vụ CMS build.
 
 ## Bảng quản trị và xuất dữ liệu
 

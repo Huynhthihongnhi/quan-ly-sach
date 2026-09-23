@@ -36,7 +36,7 @@ const colorByName = (name?: string): PaletteColor => {
 
 // ----------------------------------------------------------------------
 
-const avatarColors: Record<string, ComponentsVariants<Theme>['MuiAvatar']> = {
+const avatarColors: Record<string, NonNullable<ComponentsVariants<Theme>['MuiAvatar']>> = {
   colors: COLORS.map((color) => ({
     props: ({ ownerState }) => ownerState.color === color,
     style: ({ theme }) => ({
